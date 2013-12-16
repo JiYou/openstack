@@ -1,0 +1,37 @@
+This is an extension package for OpenStack Nova of grizzy version published in May 2013, follows are steps of applying this package into Nova.
+
+1. Copy this pakage (the myproject dir) into /opt/stack/nova/nova dir.
+
+2. Fileter Configuration.
+    Add Following lines into the [DEFAULT] group of nova.conf.
+       scheduler_available_filters=nova.scheduler.filters.standard_filters
+       scheduler_available_filters=nova.myproject.specified_host_filter.SpecifiedHostFilter
+       scheduler_default_filters=RetryFilter,AvailabilityZoneFilter,RamFilter,ComputeFilter,ComputeCapabilitiesFilter,ImagePropertiesFilter,TrustedFilter,SpecifiedHostFilter
+
+    (Re)start nova-scheduler.
+
+3. DB Configuration.
+    copy file /opt/stack/nova/nova/myproject/db/162_add_myproject_hosts.py into /opt/stack/nova/nova/db/sqlalchemy/migrate_repo/versions/ dir
+    run the command:
+        nova-manage db sync
+
+4. Start nova-myproject.
+    run the script /opt/stack/nova/nova/myproject/restart-nova-myproject.sh 
+
+5. Configure Extension API
+    Add Following lines into the [DEFAULT] group of nova.conf.
+        osapi_compute_extension=nova.myproject.simple_extension.Simple_extension
+        osapi_compute_extension=nova.myproject.myproject_extension.Myproject_extension
+
+6. (Re)start nova-api.
+
+7. Modify files /opt/stack/nova/nova/myproject/simple_extension_main.py and /opt/stack/nova/nova/myproject/myproject_extension_main.py.
+    change the fields %KEYSTONE_NOVA_PASSWORD%, %KEYSTONE_HOST%, %HOST_NAME% into the actual value.
+    where:
+        %KEYSTONE_NOVA_PASSWORD% is the password of user nova in keystone service.
+        %KEYSTONE_HOST% is the IP of keystone service.
+        %HOST_NAME% is the host name of any host running nova-myproject service.
+
+8. Test Extension API
+    run the script /opt/stack/nova/nova/myproject/simple_extension_main.py to test simple_extension.
+    run the script /opt/stack/nova/nova/myproject/myproject_extension_main.py to test myproject_extension.

@@ -1,0 +1,1425 @@
+commit f2835f4d428d3a6addba4312ada988345ed1ab89
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Wed May 1 17:25:58 2013 -0600
+
+    Update release info in index.rst.
+    
+    Add release notes and fix revision number mishap.
+    
+    Change-Id: Ia48be8462e17c900562b794fd69ba2234f6c6c03
+
+commit eaa04175eafd78925d33ed9ccce9035737fc2f3d
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Wed May 1 09:27:57 2013 -0600
+
+    Update setup.py prior to next upload to pypi.
+    
+    Minor updates to the setup.py file including:
+    author and email.
+    
+    Change-Id: I0194a5fdaa1ea441115e6e869182e4dcb5b531e0
+
+commit cc8dd55264b2778e082eb57be1cdeb5fee44fc4b
+Author: Stephen Mulcahy <stephen.mulcahy@hp.com>
+Date:   Fri Apr 12 10:36:25 2013 +0000
+
+    Add support for servicemanage backups
+    
+    Implements support for the servicemanage backup api added to monitor in
+    https://review.openstack.org/19468. This is a resubmit of the
+    expired change https://review.openstack.org/25299 with the
+    following changes:
+    
+    * Added unit tests for backups (v1 and v2)
+    * Changed references in backup code to display_name and
+      display_description to name and description respectively
+    * Removed links from backup-show output
+    * Added object_count to _translate_backup_keys
+    * Removed unneccesary items from _translate_backup_keys
+    * Fixed backups docstrings including removing references to swift.
+    
+    Adds backup-create, backup-delete, backup-list, backup-restore
+    and backup-show to both the v1 and v2 clients, since the servicemanage
+    backup extension is available via both APIs.
+    
+    Change-Id: I197384f1c2fd2af641d207a5f4dba0dfbc5c681a
+
+commit 80d0f74c81141c52db912c2150169c7866a25bc8
+Merge: c476311 0b78153
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Apr 25 22:20:09 2013 +0000
+
+    Merge "Don't print the empty table on list operations."
+
+commit c476311a28eb4d21a5f70bf8db90d67490f88154
+Author: Stephen Mulcahy <stephen.mulcahy@hp.com>
+Date:   Fri Apr 12 13:37:40 2013 +0000
+
+    Fixed unit test name in v1 and v2 tests
+    
+    Change-Id: Ia6a88be09a07ed269b1e9b43a86c88731c80784c
+
+commit 0b781536b26e57903b297d4d4e7806e4a051a532
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Thu Apr 11 19:17:01 2013 -0600
+
+    Don't print the empty table on list operations.
+    
+    Changes to strutils.safe_encode cause the empty
+    table to be printed out when no objects are actually
+    retrieved.
+    
+    This patch just adds a check of the object list length
+    before calling strutils.safe_encode, if the length is NOT
+    > 0 we just return like we used to.
+    
+    Change-Id: I57930b5210c975baa7c4510fcf82b17157e17788
+
+commit dca8dbd1c840b53bbe1c36c78f0df4d2a6b16445
+Author: Davanum Srinivas <dims@linux.vnet.ibm.com>
+Date:   Sun Apr 7 20:42:35 2013 -0400
+
+    Sync with oslo-incubator copy of setup.py and version.py
+    
+    Keep up with the changes to the master copy
+    
+    Change-Id: I24522c7de91c2dea0f7e4b8cac2a27ff162df7f1
+
+commit e7cfd77ba3a378bd811e62acb88a7fa8dff78e3a
+Merge: c5f542f fd3351f
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Tue Apr 9 15:26:12 2013 +0000
+
+    Merge "Minor typo/message fixes"
+
+commit fd3351ffa81d5c1aef336d789ebcf8c26b26d53c
+Author: Eric Harney <eharney@redhat.com>
+Date:   Tue Apr 2 10:07:24 2013 -0400
+
+    Minor typo/message fixes
+    
+    Correct it's -> its in force-delete message
+    Print whole bash_completion message in "monitor help"
+    Reformat some doc strings per PEP-0257
+    
+    Change-Id: I013b849508beac5c9fe5c6f9d4cdfae54676c29c
+
+commit c5f542fd5ab53fcec491240c9b7d0447b8294499
+Merge: 480e0f8 952970a
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Sun Apr 7 10:37:24 2013 +0000
+
+    Merge "Fix X-Auth_Token -> X-Auth-Token header name"
+
+commit 480e0f85f4496da3806a86200b9a081e92e19f8b
+Merge: df5ce24 130963e
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Sat Apr 6 16:12:52 2013 +0000
+
+    Merge "Fix result -> resp typo in unset_keys"
+
+commit df5ce24aa3aa53b96eea61a4934bc6169d848046
+Merge: 222f501 5e4a985
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Sat Apr 6 16:11:35 2013 +0000
+
+    Merge "Remove unused "import sys""
+
+commit 222f501d9f641b1a2d4b54084cc10b59755fb3a8
+Merge: c83e4a4 f80509f
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Fri Apr 5 12:59:08 2013 +0000
+
+    Merge "Add OS_TENANT_ID as authentication option"
+
+commit 5e4a985246c4c505be30447944bdd80cb51820fc
+Author: Eric Harney <eharney@redhat.com>
+Date:   Thu Apr 4 16:46:55 2013 -0400
+
+    Remove unused "import sys"
+    
+    Cleaning up with pyflakes.
+    
+    Change-Id: I24878f1bb1693af13b2a7f0f7d6fe455f8747e91
+
+commit 130963e93939759e800c45d79b2fdddc9cdbe234
+Author: Eric Harney <eharney@redhat.com>
+Date:   Thu Apr 4 16:39:43 2013 -0400
+
+    Fix result -> resp typo in unset_keys
+    
+    Change-Id: I07b0ea54993d5b00060e1dfcdfc10663d091254b
+
+commit 952970acbd1bf926303d84881510c175b5395e98
+Author: Eric Harney <eharney@redhat.com>
+Date:   Thu Apr 4 10:30:37 2013 -0400
+
+    Fix X-Auth_Token -> X-Auth-Token header name
+    
+    Fixes bug 1163546
+    
+    Change-Id: Idb2c5f23a1c57676984ffa33f64d27c461b0de15
+
+commit c83e4a4ba9b8bb66fb2ace91e123d30f16bcc5c1
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Tue Apr 2 17:12:22 2013 -0600
+
+    Pin prettytable versions
+    
+    pip-requires doesn't have any restrictions on prettytable.
+    We should match up with the pinned version in other projects.
+    
+    In addition to avoid this problem in the future updated simplejson
+    to match openstack/requirements as well.
+    
+    Change-Id: Iabf7ee8b0fd253447d1a65bc1b12906d26176286
+
+commit 03a4806d972ac150e717451566e9c4c35a141d8f
+Author: Flaper Fesp <flaper87@gmail.com>
+Date:   Wed Feb 27 14:47:44 2013 +0100
+
+    Decodes input and encodes output
+    
+    Currently monitorclient doesn't handle properly incoming and outgoing
+    encode / decode process. As a solution for this, this patch implements a
+    decoding process for all data incoming from the user side and encodes
+    everything going out of the client, i.e: http requests, prints, etc.
+    
+    This patch introduces a new module (strutils.py) taken from
+    oslo-incubator in order to use 2 of the functions present in it:
+    
+    About safe_(decode|encode):
+    
+        Both functions try to encode / decode the incoming text using the
+        stdin encoding, fallback to python's default encoding if that
+        returns None or to UTF-8 as the last option.
+    
+        In both functions only basestring objects are accepted and they both
+        raise TypeError if an object of another type is passed.
+    
+    About the general monitorclient changes:
+    
+        In order to better support non-ASCII characters, it is a good
+        practice to use unicode interanlly and encode everything that has to
+        go out. This patch aims to do that and introduces this behaviour in
+        the client.
+    
+    Testing:
+    
+        A good test (besides using tox) is to use monitor client with and
+        without setting any locale (export LANG=).
+    
+    Fixes bug: 1130572
+    
+    Change-Id: Idb7d06954c29e003f68a0c4aa0b80ecc7017cbc9
+
+commit 7369310622224073ecbef4ab84a48c2a873a56b9
+Merge: d290b92 4d76d3c
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Mar 28 14:07:39 2013 +0000
+
+    Merge "Add support for snapshot quotas."
+
+commit f80509ff1a1319ed6c7caa8a7dda6534fe42106d
+Author: Liam Kelleher <liam.kelleher@hp.com>
+Date:   Wed Mar 27 15:06:11 2013 +0000
+
+    Add OS_TENANT_ID as authentication option
+    
+    bug 1160898
+    
+    Change-Id: I8849ab8f552801b8a317cd0394251c2db1ba8e9a
+
+commit d290b92753c0146282cb0ee2763bdf90b9d84ed5
+Author: Mark McLoughlin <markmc@redhat.com>
+Date:   Mon Mar 25 21:59:37 2013 +0000
+
+    Remove unused tools/rfc.sh
+    
+    This has been deprecated in favour of git-review for quite a while now
+    and was removed from Nova 10 months ago.
+    
+    Change-Id: Ic4bfa1aee3a4b6a7588be3678ac033a1b13e2b18
+
+commit 174af7a06e77c71a2d9698b115b1e47db05d89ae
+Merge: 704cae0 36ba504
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Sun Mar 24 23:03:48 2013 +0000
+
+    Merge "Catch KeyboardInterrupt"
+
+commit 704cae0b00cd589413911689f992a63e3bd56650
+Author: john-griffith <john.griffith@solidfire.com>
+Date:   Thu Mar 21 16:56:32 2013 -0600
+
+    Add debug option processing to run_tests
+    
+    This just adds -d|--debug option so you can debug
+    using tools like pdb again and to get extra output
+    from the tests.
+    
+    Change-Id: Icebc17a1575e17cfd9597581546dca4732b9a8ef
+
+commit 4d76d3c481d4dfd95ebb5f7fe1c2d6161b7d2135
+Author: john-griffith <john.griffith@solidfire.com>
+Date:   Thu Mar 21 16:58:28 2013 -0600
+
+    Add support for snapshot quotas.
+    
+    Now we have [servicemanages, gigabyes, snapshots] as valid
+    tenant quotas.
+    
+    Change-Id: Iae8a86b31e63b9e56d6ef0bee7e03f4089aa8138
+
+commit 36ba504d52a53fb6108896f93cab81bfd0cea670
+Author: Eric Harney <eharney@redhat.com>
+Date:   Wed Mar 20 13:06:07 2013 -0400
+
+    Catch KeyboardInterrupt
+    
+    When a user Ctrl-C's the client, this will cause a short message to
+    be printed rather than an ugly backtrace.
+    
+    This will not catch all instances of this (can still Ctrl-C before
+    reaching this code, etc.), but it should catch most of them, and those
+    for long-running sessions.
+    
+    The specific message was chosen to match one recently added to the
+    glance client.
+    
+    Change-Id: Ib748835ad1f94fb901b4941dc5e3797b719e197f
+
+commit 020778ddd942e762a5e543e41bc3f4d95df3b91e
+Author: john-griffith <john.griffith@solidfire.com>
+Date:   Tue Mar 19 00:24:32 2013 -0600
+
+    Docs in monitorlcient were never actually updated.
+    
+    Not only were the docs and release info here not being
+    maintainted properly, but the examples that were given were
+    not correct.
+    
+    This change is an attempt to set us on the right path going
+    forward and includes info on how to import the API and history
+    info for the upcoming release/push to PyPi.
+    
+    Fixes bug: 1156994
+    
+    Change-Id: I169b1c01380ef653a6a25eb8946b9a06d6419e62
+
+commit f2ac10f282d2c5def47487d845d4aa18e7054917
+Author: Cory Stone <corystone@gmail.com>
+Date:   Fri Mar 15 10:19:14 2013 -0500
+
+    Debug output the http body
+    
+    Output the kwargs[data] instead of kwargs[body] which was deleted.
+    
+    Change-Id: I233e37cceb7079ec78b9bde093967dea9ad94441
+    Fixes: bug #1155655
+
+commit 458ff24513e39e9ebf669ea1155fc2d1c919f042
+Author: Ollie Leahy <oliver.leahy@hp.com>
+Date:   Wed Feb 20 15:49:52 2013 +0000
+
+    Fix typo breaking --debug option to monitor client
+    
+    Fixes LP bug #1130730
+    
+    Change-Id: Ia105e8a561b8d45c60e9a3c6ed46a953cc6df96f
+
+commit 4c375935d1b7d09fead75c0bc66580b27b987350
+Merge: a35ebc2 636ec5e
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Tue Feb 19 11:29:18 2013 +0000
+
+    Merge "adding v2 support to monitorclient"
+
+commit a35ebc2c6ef58c1d3b971e0d237ee1ef2d612c9a
+Merge: 662cbb9 ecffd70
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Sat Feb 16 21:34:29 2013 +0000
+
+    Merge "Fix upload-to-image servicemanage_id help"
+
+commit ecffd7090f9da013ff202dde3d8ad421ac93106c
+Author: Josh Durgin <josh.durgin@inktank.com>
+Date:   Fri Feb 15 15:14:09 2013 -0800
+
+    Fix upload-to-image servicemanage_id help
+    
+    It's not for taking a snapshot.
+    
+    Change-Id: I3af4ea0e3657a2359fda55c890a030fabaad129d
+    Signed-off-by: Josh Durgin <josh.durgin@inktank.com>
+
+commit 662cbb95e16be30bb1358e8aa502dce68964c5c5
+Author: john-griffith <john.griffith@solidfire.com>
+Date:   Wed Feb 13 21:47:03 2013 -0700
+
+    Handle metadata args the same for all calls.
+    
+    key-create stored it's metadata arg as an appended list,
+    while create stored as strings.  The metadata parsing
+    is compatable with both, so let's just use the same
+    method of parsing in both of these methods.
+    
+    Change-Id: I337068d45fa848d8621add29c91e4a43c9d7dc72
+
+commit 636ec5eccda3f4caef90db3fe4e0c19df1bd348d
+Author: Mike Perez <thingee@gmail.com>
+Date:   Sat Feb 2 13:26:18 2013 -0800
+
+    adding v2 support to monitorclient
+    
+    This will allow the monitorclient to speak to the v2 rest api if it's
+    enabled in the monitor config. Includes additional v2 tests as well.
+    
+    blueprint monitorclient-v2-support
+    
+    Change-Id: I004134d9f528a6eadefdaa89eb48087bcae2691f
+
+commit 20dcc85fadb84c3a9abbbdc8d5ee599402ec1488
+Merge: 8d43cd9 8cc89fd
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Wed Feb 13 08:19:40 2013 +0000
+
+    Merge "Avoid UnicodeEncodeError exception on exception"
+
+commit 8d43cd9c016a364867bde7fa1d351081f1820905
+Author: Chuck Short <chuck.short@canonical.com>
+Date:   Tue Feb 5 09:45:46 2013 -0600
+
+    Allow requests 0.8 and greater
+    
+    Bump up version requirements for requests to standardize
+    on version >= 0.8 so it doesnt create conflict with other
+    openstack projects.
+    
+    Change-Id: I1ed9b3bd6bdbbbb451298a3c397e6e7a06c0cabd
+    Signed-off-by: Chuck Short <chuck.short@canonical.com>
+
+commit c5cd7e4862a9ee9bec655cf4aaf96f2d2f67df97
+Author: Dan Prince <dprince@redhat.com>
+Date:   Thu Feb 7 11:28:51 2013 -0500
+
+    Re-add setuptools-git to setup.py.
+    
+    In 81cbbcc4e01c81084c352f7fc1ecea149089a2b9 we removed:
+    
+      setup_requires=['setuptools-git>=0.4'],
+    
+    from setup.py. This broke tarball generation in that some files are
+    now missing.
+    
+    Fixes LP Bug #1118511.
+    
+    Change-Id: I27a09e0d49befa3751031582d1b152677822041f
+
+commit 76126ebd2cb5070dd6cfaaaefd3a90c2c09fb3c3
+Merge: 7053498 81cbbcc
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Feb 7 12:43:56 2013 +0000
+
+    Merge "Update to latest oslo version code."
+
+commit 8cc89fdfe58175f284e7fffafa16377a5547ac1b
+Author: Dirk Mueller <dirk@dmllr.de>
+Date:   Wed Feb 6 17:24:35 2013 +0100
+
+    Avoid UnicodeEncodeError exception on exception
+    
+    When an exception message contained a non-ascii
+    character, the str() conversion raised an UnicodeEncodeError.
+    
+    Avoid this by simply passing the message itself.
+    Python handles the encoding to locale already.
+    
+    Change-Id: I3c4440fc238d8c8136a9bd93a0040668f82bda6e
+
+commit 7053498f3d8e6d772fc21a7f13e6940b4b28e84a
+Author: Nathan Reller <Nathan.Reller@jhuapl.edu>
+Date:   Tue Feb 5 19:00:26 2013 -0500
+
+    Correct parsing of servicemanage metadata
+    
+    ServiceManage metadata supplied via the command line is incorrectly parsed,
+    converting each character into a key with “None” as the corresponding
+    value.  This bug fix corrects the parsing and also includes regression
+    tests when metadata is provided when creating a servicemanage.
+    
+    Change-Id: I8c093df59ea4de2e2a1b7cf3ac7c4624c159fb66
+    Implements: blueprint encrypt-monitor-servicemanages
+
+commit b49f72735e3081b7784a9fbaa9252fd99f654ce9
+Merge: f0a6dee 33c897d
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Mon Feb 4 06:31:47 2013 +0000
+
+    Merge "Fixed documentation of the monitor shell command."
+
+commit 81cbbcc4e01c81084c352f7fc1ecea149089a2b9
+Author: Monty Taylor <mordred@inaugust.com>
+Date:   Fri Jan 11 07:55:28 2013 -0800
+
+    Update to latest oslo version code.
+    
+    Removes the need for the versioninfo file, as now everything can be done via
+    pkg_resources.
+    
+    Change-Id: Ice2ea2f99f5aacbd476075d12077b7287d824585
+
+commit 33c897d87e953479bfc80518f5e9750431b52869
+Author: Frederic Lepied <frederic.lepied@enovance.com>
+Date:   Fri Jan 11 21:39:11 2013 +0100
+
+    Fixed documentation of the monitor shell command.
+    
+    Updated README.rst and shell.rst to match changes
+    in the monitor command and novaclient README.rst.
+    
+    Change-Id: Ifaa53d5c06e6d7d8e3d4d858672717954303bea7
+    Fixes: bug #1074125
+
+commit f0a6dee19f573d260f8028106e66842451f82e21
+Merge: 55ae2c1 02eb985
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Tue Jan 29 06:17:57 2013 +0000
+
+    Merge "Move from nose to testr."
+
+commit 55ae2c1cd59b8924b41b672493c84b7e93661d90
+Merge: c749945 07ff48f
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Jan 24 07:14:27 2013 +0000
+
+    Merge "Add ability to call force_delete from monitorclient"
+
+commit c74994597fe9400bee79046bf9f15b163c50b61c
+Author: Eric Harney <eharney@redhat.com>
+Date:   Mon Jan 21 17:30:05 2013 -0500
+
+    Change Nova -> Vsm in credentials error message
+    
+    Change-Id: I410360ca23388e93bcbbf3dce053cae99c84a431
+
+commit 07ff48f1de5507faac197f463b418d78c9fd4e92
+Author: john-griffith <john.griffith@solidfire.com>
+Date:   Fri Jan 18 16:55:01 2013 -0700
+
+    Add ability to call force_delete from monitorclient
+    
+    We have an admin extension to do this however we never
+    exposed it via the monitorclient.
+    
+    This change simply enables access to force-delete for admins.
+    
+    Change-Id: Ia066d7dd06ccdb9b3a9221cf33086437624e65d8
+
+commit 8d2e463ac431001e50f1de975df6adb5ed1b865a
+Merge: 9a064c3 fbddead
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Fri Jan 18 07:53:34 2013 +0000
+
+    Merge "Fixed Version Functionality"
+
+commit 02eb985124efa92bf735712db0ed174c40b74d14
+Author: Monty Taylor <mordred@inaugust.com>
+Date:   Mon Dec 24 22:01:28 2012 -0600
+
+    Move from nose to testr.
+    
+    Granted - this takes the test suite from 3 seconds to 1 second... but there
+    are a bunch of other ways (correctness) that testr is better than nose.
+    
+    Removed tests/v1/utils - it was not being used anywhere.
+    
+    Part of blueprint grizzly-testtools.
+    
+    Change-Id: I54d9a0b7dc22305ec60d779d6f19025a0b5dc785
+
+commit fbddead1cba8ab43fecf9073d834395a2375f0b2
+Author: Anita Kuno <akuno@lavabit.com>
+Date:   Thu Jan 17 17:08:01 2013 +0000
+
+    Fixed Version Functionality
+    
+    In accordance with bug-1068521, monitor version functionality is available via the shell.
+    
+    Change-Id: If9608291f318057fc8fa61151328d6503a79d70d
+
+commit 9a064c3d5c09bca9c5cb7e9ffc4277ac053820e0
+Author: Avishay Traeger <avishay@il.ibm.com>
+Date:   Wed Jan 16 15:45:29 2013 +0200
+
+    Add upload-to-image function to client.
+    
+    Support uploading a servicemanage to an image in the image service.
+    
+    Change-Id: Ief996f92aaf6d7a4fee0bce5ca45b92bee3f6990
+    Fixes: bug #1099866
+
+commit 61e2a4237f0d7a4c5c9591ac364a01c844309757
+Merge: 06acb0c 765cb3d
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Wed Jan 9 07:57:09 2013 +0000
+
+    Merge "Add access to update servicemanage metadata."
+
+commit 765cb3ddbea2f0e770a2ad911b1ba17760b50818
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Sat Jan 5 01:12:59 2013 +0000
+
+    Add access to update servicemanage metadata.
+    
+    This implements the monitorclient side of
+    blueprint: update-vol-metadata
+    
+    Change-Id: I97c120d69b6d30843009f6a297bb51299799f4ec
+
+commit 06acb0c009ac53777884cf5b0aa8942184d06622
+Author: Monty Taylor <mordred@inaugust.com>
+Date:   Mon Dec 24 21:49:34 2012 -0600
+
+    Move from unittest2 to testtools
+    
+    Part of blueprint grizzly-testtools
+    
+    Change-Id: I13e068ca156f12114eaa3a65bdb557e4eb2c988d
+
+commit bf7b86748a49455ae1545f01fe5cfc9b801223aa
+Merge: 9a49690 2473311
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Fri Dec 21 08:46:11 2012 +0000
+
+    Merge "Add clone servicemanage support to monitorclient."
+
+commit 9a496900964c7037db994db800bab456d57c2164
+Author: john-griffith <john.griffith@solidfire.com>
+Date:   Mon Dec 17 14:52:05 2012 -0700
+
+    Add list-extensions capability to monitorclient.
+    
+    Implements the list extension functionality from novaclient
+    written by harlowja (Change-Id: I5b72f5ea73c00f1c1a0f09f670d744c820e05837)
+    
+    This provides a mechanism to view available extensions, and also
+    starts actually using the monitorclient contrib dir.
+    
+    Original Author: harlowja
+    
+    Change-Id: I4f9d04cb8a2aa05c978a2a5a926c9175ee3614bb
+
+commit 82e47d0866397b702ae777972add66b33afae69e
+Author: Dean Troyer <dtroyer@gmail.com>
+Date:   Thu Dec 13 12:01:07 2012 -0600
+
+    Use requests module for HTTP/HTTPS
+    
+    * Implement correct certificate verification
+    * Add --os-cacert
+    * Rework tests for requests
+    
+    Pinned requests module to < 1.0 as 1.0.2 is now current in pipi
+    as of 17Dec2012.
+    
+    Blueprint: tls-verify
+    
+    Change-Id: I71066ff7297f3b70c08b7ae1c8ae8b6a1b82bbae
+
+commit d3603535d2f47580bf49520048af1f27adea3e7c
+Author: Dean Troyer <dtroyer@gmail.com>
+Date:   Thu Dec 13 14:52:54 2012 -0600
+
+    Port some additional logging changes from novaclient
+    
+    * Allows capture of timestamps prior to and after request for timing
+      https://review.openstack.org/11519
+    * Add -X to DELETE and PUT in debug mode
+      https://review.openstack.org/12069
+    * Show request body in curl command
+      https://review.openstack.org/12203
+    
+    Change-Id: I0d87ab6b3c2b35ff843323cb818915e03993a844
+
+commit e30724df5b55f5b989f294f82ad7209e150b3559
+Author: Dean Troyer <dtroyer@gmail.com>
+Date:   Thu Dec 13 15:25:01 2012 -0600
+
+    Bring back the output from client.http_log()
+    
+    Ported from novaclient https://review.openstack.org/9241
+    Support CINDERCLIENT_DEBUG as synonym for --debug
+    
+    Change-Id: Ic03b9e7d84c8db14f6e193ca2b478fd0d70d1299
+
+commit 24733119fe5da11bccf16d345f6f27cec8bbd06f
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Thu Dec 13 21:21:55 2012 +0000
+
+    Add clone servicemanage support to monitorclient.
+    
+    Adds the option to create a clone of a servicemanage, using --source-volid xxx
+    
+    relies on Change-Id: I72bf90baf22bec2d4806d00e2b827a594ed213f4
+    
+    Change-Id: Iad2178deb66c328625fbff747e123044f9d86a88
+
+commit 9201cee6ef79dd4955f6f762e6adfaee65885ca1
+Author: Monty Taylor <mordred@inaugust.com>
+Date:   Fri Nov 30 14:22:54 2012 -0800
+
+    Update to swapped versioninfo logic.
+    
+    Change-Id: I6a8dd1c84df0a92c21f468c7dcad1ce79f69c463
+
+commit 5adf79136042004ceb76d3d1e68e0ab08edf1917
+Author: Monty Taylor <mordred@inaugust.com>
+Date:   Fri Nov 30 14:05:54 2012 -0800
+
+    Align monitorclient version code.
+    
+    Change-Id: I81d6a279a52656720626357a1c4ca8bb382ef1f8
+
+commit a74dee000e682b5b227cd9032df6719aa22ffb00
+Merge: 3ca2c99 62eb92a
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Nov 22 07:55:01 2012 +0000
+
+    Merge "Pin pep8 to 1.3.3"
+
+commit 3ca2c999583a57ef785ee011ac8d805571b8624c
+Merge: 79dc21d c01e782
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Nov 22 06:13:15 2012 +0000
+
+    Merge "Adding bootable column to servicemanage list view"
+
+commit c01e7822f9de3b17b8cca8d0b10cbf03e6890f8f
+Author: Mike Perez <thingee@gmail.com>
+Date:   Sun Nov 18 19:55:49 2012 -0800
+
+    Adding bootable column to servicemanage list view
+    
+    displays whether a servicemanage is bootable based on monitor's api response for
+    /servicemanages
+    
+    Change-Id: I8f6cc6e02be8226914f65717dcb2e0367553e51f
+
+commit 62eb92a1f2cffa5a81778018932b539f436b50f0
+Author: Chuck Short <chuck.short@canonical.com>
+Date:   Tue Nov 20 09:41:28 2012 -0600
+
+    Pin pep8 to 1.3.3
+    
+    Apart of making pep8 version standard across all openstack
+    projects.
+    
+    Change-Id: If5ef6be394e557b3554a80f1ad9b44d472c273b6
+    Signed-off-by: Chuck Short <chuck.short@canonical.com>
+
+commit 79dc21d17183fa78126515f9d8436c207fbed7b7
+Author: Christian Berendt <berendt@b1-systems.de>
+Date:   Thu Nov 8 23:33:14 2012 +0100
+
+    show help when calling without arguments
+    
+    When calling monitor without arguments you'll receive the following
+    output:
+    
+    error: too few arguments
+    Try 'monitor help ' for more information.
+    
+    With this change the help is also shown when calling monitor
+    without arguments. I think that's the expected behavior.
+    
+    Change-Id: I8f46f67b7fef472ac344bb74f80cf1b77c4c4745
+
+commit 112bd60d4e17ad435c274d52585f70faaaf9f70d
+Author: Cory Stone <corystone@gmail.com>
+Date:   Thu Nov 1 14:27:52 2012 -0500
+
+    Add retries to monitorclient.
+    
+    HTTPClient now supports a retries argument. It will reissue requests
+    for any 5xx or socket (400 with n/a) errors. This retry loop was
+    "inspired" by swiftclient's loop. It reauths one extra time if
+    necessary.  It uses backoff times of 1, 2, 4... seconds.
+    
+    The default is 0 retries. It is also exposed to the shell as well with
+    a --retries arg.
+    
+    Change-Id: I67bed02d65155f4a4d5d879bb233f56cc78849fa
+
+commit 1abc0b4edfa70485cd32bac2060b1b223850752e
+Author: Alessandro Pilotti <ap@pilotti.it>
+Date:   Tue Nov 6 19:38:28 2012 +0200
+
+    Fixes setup compatibility issue on Windows
+    
+    Fixes Bug #1052161
+    
+    "python setup.py build" fails on Windows due to a hardcoded shell path:
+    /bin/sh
+    
+    setup.py updated using openstack-common/update.py
+    
+    Change-Id: Iafae444a43c76560020a84e3a1c5c8cb4b6860da
+
+commit dcbebd7b78235008e36fe6b8c8cc4a75f5031042
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Fri Nov 2 22:17:03 2012 +0000
+
+    Revert "Add retries to monitorclient."
+    
+    This reverts commit 3b1eda3b3bb6678e9c9ec3e783e3e12b0c42f0a4
+
+commit 3b1eda3b3bb6678e9c9ec3e783e3e12b0c42f0a4
+Author: Cory Stone <corystone@gmail.com>
+Date:   Thu Nov 1 14:27:52 2012 -0500
+
+    Add retries to monitorclient.
+    
+    HTTPClient now supports a retries argument. It will reissue requests
+    for any 5xx or socket (400 with n/a) errors. This retry loop was
+    "inspired" by swiftclient's loop. It reauths one time if necessary.
+    It uses backoff times of 1, 2, 4... seconds.
+    
+    The default is 0 retries. It is also exposed to the shell as well with
+    a --retries arg.
+    
+    Change-Id: I75d9a13d6c4ba16a5da13d4bf5cad78a777d67d7
+
+commit 7d3749e7c3c3f66900a4b08563a3b1e8d1dd0c35
+Merge: 0288e7f a8be1b2
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Nov 1 19:04:42 2012 +0000
+
+    Merge "Remove extra-specs from types-list command output"
+
+commit 0288e7fd095037898fe451275a3ecfc183eac134
+Merge: 92bd08b 28d4d6b
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Nov 1 18:59:45 2012 +0000
+
+    Merge "Remove attach/detach code from monitorclient"
+
+commit a8be1b2a205dfba0a23d92454be67adfe0a0aaf4
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Wed Oct 31 18:10:54 2012 -0600
+
+    Remove extra-specs from types-list command output
+    
+    type-list was including the extra-specs info in it's response,
+    however extra-specs are admin accessible only. As a result only admin
+    users could run type-list which is not what we want.
+    
+    Add a seperate admin only call to provide servicemanage-types with associated
+    extra-specs info (extra-specs-list).
+    
+    Change-Id: I2a716cd7076fb17fd5f2ceb94363eef0009e9bce
+
+commit 92bd08b9e1082620d41e827db2eeade5da6c8e19
+Merge: 4649420 942ab5c
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Wed Oct 31 20:24:16 2012 +0000
+
+    Merge "Add servicemanage_type extra_specs support to client"
+
+commit 28d4d6bfd09063e8d814cf64ef504aa01a9a90e7
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Tue Oct 30 10:24:47 2012 -0600
+
+    Remove attach/detach code from monitorclient
+    
+    Attach and Detach actions are done in the novaclient, however
+    during the creation of Vsm a number of these methods were copied into
+    the Vsm client.  This is dead code and just adds confusion, so let's
+    rip it out.
+    
+    Change-Id: Ib96fe0cac26f19e7d9f2aa01c71ba9762e4f8b8e
+    Fixes: bug #1071003
+
+commit 4649420ca2e8e24c8e651d141839d62fbbb53416
+Merge: c20d7d9 01dad32
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Tue Oct 30 16:15:09 2012 +0000
+
+    Merge "Fix support for Unicode servicemanage names"
+
+commit c20d7d902ee6e2ef50f20fa850f47afa310b5998
+Author: Dean Troyer <dtroyer@gmail.com>
+Date:   Tue Oct 23 14:48:38 2012 -0500
+
+    Add python_monitorclient.egg-info to .gitignore
+    
+    Change-Id: I24a7a5f423e99a9b6839b5f3a1b1fbf05297dc53
+
+commit 01dad32c07ad500f2e0000dcd24a50f5c47cd206
+Author: Eric Harney <eharney@redhat.com>
+Date:   Tue Oct 23 15:40:17 2012 -0400
+
+    Fix support for Unicode servicemanage names
+    
+    It is possible to create a Unicode servicemanage from the command line,
+    but it cannot be manipulated by name for operations such as delete.
+    This is because the find_resource function tries to match the
+    Unicode string to a regular byte string, and a UnicodeWarning is
+    issued, failing the match.  Fix by decoding the Unicode name when
+    trying to match.
+    
+    Fixes bug 1065275.
+    
+    Change-Id: I8e19a78bbc1ccb503ccd39dc3b904fc4f6f77858
+
+commit 5a3a18d0cbe71ae7e150fe69efe5239601413f9b
+Author: Doug Hellmann <doug.hellmann@dreamhost.com>
+Date:   Mon Oct 22 18:42:34 2012 -0400
+
+    Add OpenStack trove classifier for PyPI
+    
+    Add trove classifier to have the client listed among the
+    other OpenStack-related projets on PyPI.
+    
+    Change-Id: I904372caf0a8eaa44dd048729b4d87e5333f04cc
+    Signed-off-by: Doug Hellmann <doug.hellmann@dreamhost.com>
+
+commit 942ab5c7fe901dd925ee38328c91e1cd160bc437
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Tue Oct 9 18:45:41 2012 -0600
+
+    Add servicemanage_type extra_specs support to client
+    
+    Adds ability to set/clear servicemanage_type extra_specs
+    via python-monitorclient.
+    
+    * Adds extra_specs info to the list-types output
+    * Adds missing tests for servicemanage_types features
+    * Fixes unset loop so it actually iterates through all of the supplied keys
+    
+    Change-Id: I3552de722f76389cfef6d4f12320720e022ebfac
+
+commit 7cba8eb7863705fcf0ef5c677cef2d334bd8ad26
+Author: Clay Gerrard <clay.gerrard@gmail.com>
+Date:   Tue Aug 28 20:20:35 2012 +0000
+
+    add rename and snapshot-rename commands
+    
+    Change-Id: I06549f19b846d886fabd611d2167b894c4d02df8
+
+commit 2e6be694c17d505bf52e339bccf6848776493ffe
+Author: Vishvananda Ishaya <vishvananda@gmail.com>
+Date:   Thu Sep 20 14:29:21 2012 +0000
+
+    Show servicemanage and snapshot data on create
+    
+    monitor create and monitor snapshot-create do not display the data
+    returned from the api. This makes it difficult to find the id of
+    of the newly created object.
+    
+    Fixes bug 1053432
+    
+    Change-Id: I1defafff3fd08f9b3510f70a455d49d470322d82
+
+commit 45bcdcaa2288a09c44306a3d0f0245df4d014897
+Author: Adam Gandelman <adam.gandelman@canonical.com>
+Date:   Mon Sep 17 16:55:43 2012 -0700
+
+    Fix some pep8 issues.
+    
+    Replace a few '== None' comparisons with 'if None' to fix
+    E711 pep8 failures in test suite.
+    
+    Change-Id: Ibce88b74cd19233820f9b00a4eacdabff6c71a6b
+
+commit f2424f2921bba614603b1899aea638221f7efc1c
+Author: Rongze Zhu <zrzhit@gmail.com>
+Date:   Wed Sep 12 03:21:12 2012 +0000
+
+    Remove unused methods in FakeHTTPClient and unused unittests
+    
+    Removed unittests:
+    
+    tests/v1/test_limits.py
+    
+    Modified methods:
+    
+    get_os_quota_sets_test
+    get_os_quota_sets_test_defaults
+    put_os_quota_sets_test
+    get_os_quota_class_sets_test
+    put_os_quota_class_sets_test
+    
+    Removed methods:
+    
+    get_limits
+    post_servers
+    get_servers_1234
+    get_servers_5678
+    put_servers_1234
+    delete_servers_1234
+    delete_servers_1234_metadata_test_key
+    delete_servers_1234_metadata_key1
+    delete_servers_1234_metadata_key2
+    post_servers_1234_metadata
+    get_servers_1234_diagnostics
+    get_servers_1234_actions
+    get_servers_1234_ips
+    get_servers_1234_ips_public
+    get_servers_1234_ips_private
+    delete_servers_1234_ips_public_1_2_3_4
+    post_servers_1234_action
+    get_os_cloudpipe
+    post_os_cloudpipe
+    get_flavors
+    get_flavors_detail
+    get_flavors_1
+    get_flavors_2
+    get_flavors_3
+    delete_flavors_flavordelete
+    post_flavors
+    get_os_floating_ip_pools
+    get_os_floating_ips
+    get_os_floating_ips_1
+    post_os_floating_ips
+    post_os_floating_ips
+    delete_os_floating_ips_1
+    get_os_floating_ip_dns
+    get_os_floating_ip_dns_testdomain_entries
+    get_os_floating_ip_dns_testdomain_entries_testname
+    put_os_floating_ip_dns_testdomain
+    put_os_floating_ip_dns_testdomain_entries_testname
+    delete_os_floating_ip_dns_testdomain
+    delete_os_floating_ip_dns_testdomain_entries_testname
+    get_images
+    get_images_detail
+    get_images_1
+    get_images_2
+    post_images
+    post_images_1_metadata
+    delete_images_1
+    delete_images_1_metadata_test_key
+    get_os_keypairs
+    delete_os_keypairs_test
+    post_os_keypairs
+    get_servers_1234_os_virtual_interfaces
+    get_os_security_groups
+    get_os_security_groups_1
+    delete_os_security_groups_1
+    post_os_security_groups
+    get_os_security_group_rules
+    delete_os_security_group_rules_1
+    post_os_security_group_rules
+    get_os_simple_tenant_usage
+    get_os_simple_tenant_usage_tenantfoo
+    get_os_certificates_root
+    post_os_certificates
+    get_os_aggregates
+    _return_aggregate
+    get_os_aggregates_1
+    post_os_aggregates
+    put_os_aggregates_1
+    put_os_aggregates_2
+    post_os_aggregates_1_action
+    post_os_aggregates_2_action
+    delete_os_aggregates_1
+    get_os_hosts_host
+    get_os_hosts_sample_host
+    put_os_hosts_sample_host_1
+    put_os_hosts_sample_host_2
+    put_os_hosts_sample_host_3
+    get_os_hosts_sample_host_startup
+    get_os_hosts_sample_host_reboot
+    get_os_hosts_sample_host_shutdown
+    put_os_hosts_sample_host
+    
+    Change-Id: I0207a558edbfae8f5e69913c421c31e35fefcf4c
+
+commit 67b5cba433e0b5472df51793e4b4290a9cfb096a
+Merge: 6313c93 5997e23
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Wed Sep 12 23:51:34 2012 +0000
+
+    Merge "Patch for bug #1004382"
+
+commit 6313c9347ebbbf5065588ddc7303b95a66e119c3
+Merge: 9e69ce1 081cc2e
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Wed Sep 12 23:48:50 2012 +0000
+
+    Merge "Fixes bug 1045777."
+
+commit 9e69ce1a754097f831c9ba8fad0daa3144b882b1
+Merge: 6e7156f f270f22
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Wed Sep 12 23:43:35 2012 +0000
+
+    Merge "Implement servicemanage quota support in the monitorclient"
+
+commit 6e7156f0a639c651f3ddf63481be96cf03c39878
+Merge: a416655 2313ddf
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Wed Sep 12 21:17:30 2012 +0000
+
+    Merge "add tenant_id and make projectid optional"
+
+commit a41665549709c94785852866c5e76c3c571bb164
+Merge: a4d4601 9ba6ed5
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Wed Sep 12 16:40:34 2012 +0000
+
+    Merge "Add filter options to list and snapshot-list"
+
+commit 5997e233e165fb865b350577aaa8e15366846866
+Author: Rongze Zhu <zrzhit@gmail.com>
+Date:   Wed Sep 12 02:55:45 2012 +0000
+
+    Patch for bug #1004382
+    
+    Related  change is If5d00a7f7991d78243e76a6e22031c185caee80a
+    
+    Add new action in tests.v1.fakes.FakeHTTPClient, so it allow to test
+    os-begin_detaching and os-roll_detaching.
+    Fix typo in tests/v1/test_servicemanages.py.
+    
+    Change-Id: I5c4cd9cc56a7235036b6bab6641554b5919ffbb6
+
+commit 2313ddfc8c89074b3aaf269097236c5d93b59fdf
+Author: Clay Gerrard <clay.gerrard@gmail.com>
+Date:   Tue Sep 11 12:13:46 2012 -0500
+
+    add tenant_id and make projectid optional
+    
+    Add a new optional tenant_id keyword argument to the client classes
+    monitorclient.client.HTTPClient and monitorclient.v1.client.Client to
+    support authentication with tenant_id instead of projectid (which is
+    acctually used as "tenantName" in the auth request body).
+    
+    Keystone can provide tokens without specifiying the tenant in any form,
+    but a tenantName _or_ tenantId is required to generate the catalog (the
+    keystone service code seems to prefer tenantName if both are specified).
+    
+    When using monitorclient programatically, it may be more convienent,
+    depending on the context to authenticate with out specificying the
+    tenant, or by tenant_id instead of tenant_name.  Either way it's
+    impractial to make the requirement in the client for projectid
+    (tenantName) if the auth system has no such limitation.
+    
+    The new client signature is backwards compatible.  There is no change in
+    behavior for the shell client.
+    
+    Change-Id: I0c1bdbdabd9acc29133a48a798750323011f1f18
+
+commit a4d46014325f4f34ac9db82c863f5764c8560a3e
+Author: Rongze Zhu <zrzhit@gmail.com>
+Date:   Tue Sep 11 08:26:59 2012 +0000
+
+    Add begin_detaching and roll_detaching functions
+    
+    Fixes bug #1004382
+    
+    If nova call nova.servicemanage.monitor.API.begin_detaching and
+    nova.servicemanage.monitor.API.roll_detaching, it need python_monitorclient
+    support the functions.
+    
+    Change-Id: If5d00a7f7991d78243e76a6e22031c185caee80a
+
+commit 9ba6ed5a90fcdb8f5d8eb84ebbeab32bd73b5cec
+Author: Clay Gerrard <clay.gerrard@gmail.com>
+Date:   Wed Sep 5 14:51:57 2012 +0000
+
+    Add filter options to list and snapshot-list
+    
+    Change-Id: I9a8b538ad53960700ae7a57d1ceb09b05e3dc468
+
+commit 081cc2e572f7a6ae238b82a56f4b52986f9ab2c2
+Author: Avishay Traeger <avishay@il.ibm.com>
+Date:   Wed Sep 5 09:49:34 2012 +0300
+
+    Fixes bug 1045777.
+    
+    Removed conversion from name to ID, now servicemanage type is properly passed
+    to Vsm.
+    
+    Change-Id: Idd83af7a5ace58cb062545be221f93db0805438b
+
+commit f270f22cb051fbcf97f14d6c5b2ce1995a4aa601
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Thu Aug 16 15:48:55 2012 -0600
+
+    Implement servicemanage quota support in the monitorclient
+    
+      * fix for bug 1023311
+      * Implements quota extensions in monitorclient
+      * Implements absolute limits and rate limits
+    
+    Change-Id: I7e3f8474476cbc03efb2fefcb8400f5fec85ddcb
+
+commit a153f10b2b22ea81514ed07de46da90e33b345ec
+Merge: 08aa965 d7b09bd
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Aug 30 15:15:12 2012 +0000
+
+    Merge "Change '_' to '-' in options"
+
+commit 08aa9659c91b0e2dc1886fb49467cae9e410ad44
+Merge: 0d0a46b d92d0b0
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Thu Aug 30 14:47:04 2012 +0000
+
+    Merge "Add nosehtmloutput as a test dependency."
+
+commit 0d0a46b1c25b9781e94534d5f979821856a5ea20
+Author: lrqrun <lrqrun@gmail.com>
+Date:   Wed Aug 29 13:45:49 2012 +0800
+
+    Fix PEP8 issues.
+    
+    Fix some pep8 issues in doc/source/conf.py make the code looks pretty.
+    
+    Change-Id: I4062904dfebf62dddb7ca2cb7b6c547c5026eb54
+
+commit 0a3745db1a70145e2054573d23995935857c384c
+Merge: f885e8b 0e1e447
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Sat Aug 25 17:30:19 2012 +0000
+
+    Merge "Correct param comments in docstring"
+
+commit d7b09bd097265691b60608f6cf32fd4f4ea3bc65
+Author: Dean Troyer <dtroyer@gmail.com>
+Date:   Wed Aug 22 23:42:26 2012 -0500
+
+    Change '_' to '-' in options
+    
+    This changes every command-line option with a '_' in its name
+    and changes them to '-'.  The old option names are maintained
+    for backward compatibility but are no longer in the help text.
+    
+    BP command-options
+    
+    Change-Id: If926bb3b8fa85d628aea197496cf976f71bcdd08
+
+commit 0e1e44733b91f342fa70f7400777e3cc840061ac
+Author: Rongze Zhu <zrzhit@gmail.com>
+Date:   Thu Aug 23 16:55:43 2012 +0000
+
+    Correct param comments in docstring
+    
+    Some methods in monitorclient/v1/servicemanages.ServiceManageManager have 'servicemanage'
+    paramter, but in docstring the paramter is 'server'. So change ":param
+    server:" to ":param servicemanage:".
+    
+    Change-Id: I75a86180a830d3ae875ee1aecd45f9a6e39f6e22
+
+commit f885e8bade361602e0665cc8d176b8bd8ad0f779
+Author: Vincent Hou <sbhou@cn.ibm.com>
+Date:   Wed Aug 22 16:21:29 2012 +0800
+
+    Add the test environment for the virtualenv.
+    
+    Resolve Bug1037422.
+    
+    Change-Id: Ib36ff6eff6e84af25a8d799173524ced9e6d5d06
+
+commit d92d0b06a4819ad27d2870f3c3bf3adedfa41c34
+Author: Clark Boylan <clark.boylan@gmail.com>
+Date:   Tue Aug 21 14:32:58 2012 -0700
+
+    Add nosehtmloutput as a test dependency.
+    
+    Adding nosehtmloutput as a test dependency allows nose to output its
+    results to an html file. This will be used by Jenkins to save logs on
+    a different server.
+    
+    Change-Id: I439fc9742762e626610a7b0774ed1274cf38ceb7
+
+commit 0bba3857d19bdfbc7ac3a408b3889b92245ed812
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Tue Aug 14 17:59:27 2012 -0600
+
+    Add ability to provide metadata on servicemanage creation
+    
+    Add argument and parser for shell to be able to take
+    metadata input on servicemanage create.
+    
+    Change-Id: I64c72df78b8e091e37b8986aea5bd4980a0c7a75
+
+commit 75b6589ed0fdb3e93204334af944321113f79010
+Author: Josh Durgin <josh.durgin@inktank.com>
+Date:   Mon Aug 13 23:14:51 2012 -0700
+
+    Add image id arg to create
+    
+    This works with patch set 7 at https://review.openstack.org/#/c/11028/
+    
+    Change-Id: I113e0dc557500ea52e64d810409548ed1ffafe90
+    Signed-off-by: Josh Durgin <josh.durgin@inktank.com>
+
+commit 937e80aa719319f24bc2eb18539716c8e8691285
+Merge: 8e48619 332a720
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Tue Aug 14 21:28:52 2012 +0000
+
+    Merge "Add availability_zone support for servicemanage creation."
+
+commit 8e48619f96eb4d51c0f05b66ddf73b1338c99f3c
+Merge: f29d1c8 ac7d98b
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Tue Aug 14 10:05:28 2012 +0000
+
+    Merge "Rename bash completion file from nova to monitor."
+
+commit 332a72004f3016ed692dfc483ae8cefc4906fffb
+Author: Zhiteng Huang <zhiteng.huang@intel.com>
+Date:   Thu Aug 9 14:20:40 2012 +0800
+
+    Add availability_zone support for servicemanage creation.
+    
+    Add '--availability_zone' flag to 'create' sub command in order to allow
+    user to speicify target availability zone for servicemanage.
+    
+    Also fix library description in setup.py
+    
+    Change-Id: Ice3c9a550dcc486208208074730da13c64a6719b
+
+commit ac7d98b84f7a5fdfd98df1ffd43da3e5ef110fcf
+Author: Chmouel Boudjnah <chmouel.boudjnah@rackspace.co.uk>
+Date:   Thu Aug 9 14:15:40 2012 +0000
+
+    Rename bash completion file from nova to monitor.
+    
+    Change-Id: I4bcdb482149271253e12f43fb85a663b5c938a14
+
+commit f29d1c8349069a39776cf8ec5cc27ecc7e8d150a
+Author: jakedahn <jake@ansolabs.com>
+Date:   Sun Aug 5 17:32:00 2012 -0700
+
+    Add all_tenants flag to snapshots and servicemanages.
+    
+      Adds search_opts functionality for the following branches:
+        * https://review.openstack.org/#/c/10750/
+        * https://review.openstack.org/#/c/10855/
+    
+    Change-Id: I8eb69574d3a0510bb6ac8b14b3e2a50a33542f11
+
+commit 778d2d90227771976f9b98ab686dbe1d88154806
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Tue Jul 24 19:29:02 2012 -0600
+
+    Add missing parameters to servicemanage create body
+    
+    * Fixes bug 1028684
+    * Adds metadata and other parameters to servicemanage create
+    
+    Change-Id: Iaa0c9fd5edac8b48d92ee9722ea5d31d8249cd67
+
+commit 1a32f024ce565d19a362d615cfefda2a59e01f54
+Author: Chuck Short <chuck.short@canonical.com>
+Date:   Wed Jun 27 13:21:26 2012 -0400
+
+    Bump pep8 to 1.2
+    
+    Align it with outher openstack projects.
+    
+    Change-Id: I71a4b3303a354c0483c5da6a786ee6ae39388c77
+    Signed-off-by: Chuck Short <chuck.short@canonical.com>
+
+commit 55464f78214c16dc64ab0afa15c915217c769fd0
+Author: Monty Taylor <mordred@inaugust.com>
+Date:   Mon Jun 25 11:15:53 2012 -0500
+
+    Add post-tag versioning.
+    
+    Change-Id: I527accfa7352ececaabad1213cf2c0b2ef115930
+
+commit 0daf35ad08bc7fb2e2e320fb04b5169ce319fa80
+Author: Anthony Young <sleepsonthefloor@gmail.com>
+Date:   Wed Jun 20 17:09:59 2012 -0700
+
+    Add support for extended_snapshot_attributes
+    
+     * Needed for https://review.openstack.org/#/c/8493/
+    
+    Change-Id: I5beb2638a48776e04bfd95281da838c5b710ea46
+
+commit 12d162d0ee24ea0e0c696f0f11adfd6ac3bee810
+Author: Anthony Young <sleepsonthefloor@gmail.com>
+Date:   Thu May 31 14:47:30 2012 -0700
+
+    Add client work for new monitor extensions.
+    
+     * #5 of blueprint servicemanage-decoupling
+     * Fix pep8
+    
+    Change-Id: Icad4eada0cf16a0f49d9a52e593bede0fc0c5289
+
+commit 7816b3dc31722774be61ddf0047f444dfdff6f05
+Merge: 7547dad 314fa34
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Sat Jun 16 23:45:11 2012 +0000
+
+    Merge "Auto generate AUTHORS file for python-monitorclient component."
+
+commit 7547dadf8731bcdd166f8f59a427fc1caeda111f
+Author: Clark Boylan <clark.boylan@gmail.com>
+Date:   Fri Jun 8 15:14:06 2012 -0700
+
+    Move docs to doc.
+    
+    To better facilitate the building and publishing of sphinx
+    documentation by Jenkins we are moving all openstack projects with
+    sphinx documentation to a common doc tree structure. Documentation
+    goes in project/doc and build results go in project/doc/build.
+    
+    Change-Id: I3ae14ac735d9b4c0b534eac9a9c142f8ccaac1b9
+
+commit 93f9fa75fa8b96e4429dce73e0320686b5b52893
+Author: John Griffith <john.griffith@solidfire.com>
+Date:   Fri Jun 1 18:55:40 2012 -0600
+
+    Set pep8 version to 1.1 in test_requires
+    
+    * Fixes bug 1007520
+    * Changes in pep8 cause new failures
+    
+    Change-Id: Ie678f01a5008b0df6ef43a360b599890cab40776
+
+commit 314fa34b75307c51a1eaf7c9eab9033b2cdc2d48
+Author: Bhuvan Arumugam <bhuvan@apache.org>
+Date:   Fri Jun 1 23:52:38 2012 -0700
+
+    Auto generate AUTHORS file for python-monitorclient component.
+    
+    Bug: 976267
+    
+    Now that git commits are gated by CLA, we shouldn't enforce
+    committers to add an entry in AUTHORS file. The AUTHORS file
+    should be generated automatically, based on git commits.
+    
+    This commit fixes the problem.
+    
+    * AUTHORS
+      Remove this file.
+    
+    * .gitignore
+      Add AUTHORS file.
+    
+    * monitorclient/shell.py
+      pep8 fix.
+    
+    Change-Id: I4e3c4524fc71a11f11b48fcb6abb99e6c7f33e90
+
+commit 1711f1f9bb3cd514ded6839cff7e3d3aff1df547
+Author: Monty Taylor <mordred@inaugust.com>
+Date:   Mon May 21 16:44:06 2012 -0400
+
+    Align setup.py and tox with standards.
+    
+    Change-Id: Ic63c6fd4d770303ae5f295c58e43213e88e34b57
+
+commit 471704df644eced17026c280b0aab9e549718e14
+Author: Jenkins <jenkins@review.openstack.org>
+Date:   Mon May 21 16:32:35 2012 -0400
+
+    Initial split from python-novaclient.

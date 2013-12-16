@@ -1,0 +1,15 @@
+# keystone dependencies
+pam>=0.1.4
+WebOb==1.2.3
+eventlet
+greenlet
+PasteDeploy
+paste
+routes
+sqlalchemy>=0.7.8,<=0.7.9
+sqlalchemy-migrate>=0.7.2
+passlib
+lxml
+iso8601>=0.1.4
+python-keystoneclient>=0.2.1,<0.3
+oslo.config>=1.1.0

@@ -1,0 +1,3 @@
+[console_scripts]
+monitor = monitorclient.shell:main
+

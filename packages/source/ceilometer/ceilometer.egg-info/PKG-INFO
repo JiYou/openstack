@@ -1,0 +1,27 @@
+Metadata-Version: 1.1
+Name: ceilometer
+Version: 2013.2.a82.g0239a3a
+Summary: OpenStack Metering
+Home-page: http://www.openstack.org/
+Author: OpenStack
+Author-email: openstack-dev@lists.openstack.org
+License: UNKNOWN
+Description: ceilometer
+        ==========
+        
+        See the ReleaseNotes document and the project home for more info.
+        
+          http://launchpad.net/ceilometer
+        
+        
+Platform: UNKNOWN
+Classifier: Environment :: OpenStack
+Classifier: Intended Audience :: Information Technology
+Classifier: Intended Audience :: System Administrators
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Topic :: System :: Monitoring

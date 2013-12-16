@@ -1,0 +1,66 @@
+[paste.filter_factory]
+swift = ceilometer.objectstore.swift_middleware:filter_factory
+
+[ceilometer.poll.central]
+network_floatingip = ceilometer.network.floatingip:FloatingIPPollster
+objectstore = ceilometer.objectstore.swift:SwiftPollster
+image = ceilometer.image.glance:ImagePollster
+kwapi = ceilometer.energy.kwapi:KwapiPollster
+
+[ceilometer.publisher]
+test = ceilometer.publisher.test:TestPublisher
+meter_publisher = ceilometer.publisher.rpc:RPCPublisher
+rpc = ceilometer.publisher.rpc:RPCPublisher
+udp = ceilometer.publisher.udp:UDPPublisher
+meter = ceilometer.publisher.rpc:RPCPublisher
+
+[ceilometer.compute.virt]
+libvirt = ceilometer.compute.virt.libvirt.inspector:LibvirtInspector
+
+[console_scripts]
+ceilometer-collector = ceilometer.collector.service:collector
+ceilometer-dbsync = ceilometer.storage:dbsync
+ceilometer-agent-compute = ceilometer.compute.manager:agent_compute
+ceilometer-api = ceilometer.api.app:start
+ceilometer-collector-udp = ceilometer.collector.service:udp_collector
+ceilometer-agent-central = ceilometer.central.manager:agent_central
+
+[ceilometer.transformer]
+accumulator = ceilometer.transformer.accumulator:TransformerAccumulator
+
+[ceilometer.collector]
+image_serve = ceilometer.image.notifications:ImageServe
+subnet = ceilometer.network.notifications:Subnet
+instance_delete = ceilometer.compute.notifications:InstanceDelete
+image_download = ceilometer.image.notifications:ImageDownload
+network = ceilometer.network.notifications:Network
+disk_ephemeral_size = ceilometer.compute.notifications:EphemeralDiskSize
+volume_size = ceilometer.volume.notifications:VolumeSize
+image = ceilometer.image.notifications:Image
+instance_scheduled = ceilometer.compute.notifications:InstanceScheduled
+instance_flavor = ceilometer.compute.notifications:InstanceFlavor
+volume = ceilometer.volume.notifications:Volume
+instance = ceilometer.compute.notifications:Instance
+vcpus = ceilometer.compute.notifications:VCpus
+disk_root_size = ceilometer.compute.notifications:RootDiskSize
+floatingip = ceilometer.network.notifications:FloatingIP
+memory = ceilometer.compute.notifications:Memory
+image_crud = ceilometer.image.notifications:ImageCRUD
+image_size = ceilometer.image.notifications:ImageSize
+router = ceilometer.network.notifications:Router
+port = ceilometer.network.notifications:Port
+
+[ceilometer.poll.compute]
+instance = ceilometer.compute.pollsters:InstancePollster
+net = ceilometer.compute.pollsters:NetPollster
+diskio = ceilometer.compute.pollsters:DiskIOPollster
+cpu = ceilometer.compute.pollsters:CPUPollster
+
+[ceilometer.storage]
+sqlite = ceilometer.storage.impl_sqlalchemy:SQLAlchemyStorage
+postgresql = ceilometer.storage.impl_sqlalchemy:SQLAlchemyStorage
+log = ceilometer.storage.impl_log:LogStorage
+mongodb = ceilometer.storage.impl_mongodb:MongoDBStorage
+mysql = ceilometer.storage.impl_sqlalchemy:SQLAlchemyStorage
+hbase = ceilometer.storage.impl_hbase:HBaseStorage
+

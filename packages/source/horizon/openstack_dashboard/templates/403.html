@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %} - {% trans "Forbidden" %}{% endblock %}
+
+{% block content %}
+  <div id="right_content">
+    <div id="page_head">
+      <h2 id="page_heading">{% trans "Forbidden" %}</h2>
+      <p id="page_description">{% trans "You do not have the required privileges to access this content.
+      If you believe this message to be in error, please contact your project manager." %}</p>
+    </div>
+  </div>
+{% endblock %}
+
+{% block sidebar %}
+  <div id="sidebar">
+    <ul id="navigation">
+      {% block nav_home %}
+      <li><h3><a href="{% url index %}">{% trans "Home" %}</a></h3></li>
+      {% endblock %}
+
+      {% block nav_projects %}
+      <li><h3><a href="{% url index %}">{% trans "Projects" %}</a></h3></li>
+      {% endblock %}
+    </ul>
+  </div> <!-- end sidebar -->
+{% endblock %}

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>
+      Metering for {{meter}}
+    </title>
+    <link href="/v1/static/bootstrap/css/bootstrap.css" rel="stylesheet" type="text/css">
+    <link href="/v1/static/bootstrap/css/bootstrap-responsive.css" rel="stylesheet" type="text/css">
+    <link href="/v1/static/rickshaw.css" rel="stylesheet" type="text/css">
+  </head>
+  <body>
+
+    <div class="container">
+      <div class="content">
+        <div>
+          <ul class="breadcrumb">
+            {% if source %}
+            <li class="active">
+              <a href="/v1/sources/{{source}}">
+                <i class="icon-share"></i>
+                Source {{source}}
+              </a>
+              <span class="divider">/</span>
+            </li>
+            {% endif %}
+            {% if user %}
+            <li class="active">
+              <a href="/v1/users/{{user}}">
+                <i class="icon-user"></i>
+                User {{user}}
+              </a>
+              <span class="divider">/</span>
+            </li>
+            {% endif %}
+            {% if project %}
+            <li class="active">
+              <a href="/v1/projects/{{project}}">
+                <i class="icon-tasks"></i>
+                Project <strong>{{project}}</strong>
+              </a>
+              <span class="divider">/</span>
+            </li>
+            {% endif %}
+            {% if resource %}
+            <li>
+              <a href="/v1/resources/{{resource}}">
+                <i class="icon-cog"></i>
+                Resource
+                {{resource}}
+              </a>
+              <span class="divider">/</span>
+            </li>
+            {% endif %}
+            <li class="active">
+              <a href="#">
+                <i class="icon-screenshot"></i>
+                Meter
+                {{meter}}
+              </a>
+            </li>
+          </ul>
+        </div>
+        <div class="row">
+          <div class="span7">
+            <h1>Graph</h1>
+            <div id="chart"></div>
+          </div>
+          <div class="span5">
+            <h1>API</h1>
+            <div class="btn-group" id="api-buttons">
+            </div>
+            <br>
+            <div id="result"></div>
+          </div>
+        </div>
+
+        <h1>JSON</h1>
+        <pre class="pre-scrollable" id="events-json">
+        </pre>
+
+      </div>
+    </div>
+    <script src="/v1/static/bootstrap/js/bootstrap.js" type="text/javascript"></script>
+    <script src="/v1/static/jquery-1.8.3.js" type="text/javascript"></script>
+    <script src="/v1/static/d3.v2.js" type="text/javascript"></script>
+    <script src="/v1/static/rickshaw.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+    $(function () {
+        var events = {{events.data|safe}};
+        $("pre#events-json").text(JSON.stringify(events, undefined, 2));
+
+        var graph = new Rickshaw.Graph( {
+            element: document.getElementById("chart"),
+            renderer: 'line',
+            series: [
+                {
+                    data: events.events.map(function (event) {
+                        formatDate = d3.time.format.iso;
+                        return {
+                            x: formatDate.parse(event.timestamp).getTime(),
+                            y: event.counter_volume,
+                        }
+                    }),
+                    color: "#c05020",
+                    name: "{{meter}}",
+                },
+            ]
+        } );
+
+        var y_ticks = new Rickshaw.Graph.Axis.Y( {
+            graph: graph,
+            orientation: 'left',
+            tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+            element: document.getElementById('y_axis'),
+        } );
+
+        var axes = new Rickshaw.Graph.Axis.Time({
+            graph: graph,
+            ticksTreatment: "glow",
+        });
+
+        var hoverDetail = new Rickshaw.Graph.HoverDetail({
+	    graph: graph
+        });
+
+        graph.render();
+    })
+    </script>
+
+
+    <script type="text/javascript">
+    $(function () {
+        var meter_api = [["volume/max", "volume-max", "chevron-up"],
+                         ["volume/sum", "volume-sum", "plus-sign"],
+                         ["duration", "duration", "time"]];
+
+        meter_api.forEach(function (data) {
+            var link = data[0];
+            var class_name = data[1];
+            var icon = data[2];
+
+            $("#api-buttons")
+                .append($("<a>")
+                        .attr({
+                            href: "./{{meter}}/" + link,
+                            id: "button-" + class_name,
+                        })
+                        .addClass("btn btn-primary")
+                        .append($("<i>").addClass("icon-white icon-" + icon))
+                        .append(" Get " + link)
+                        .click(function (event) {
+                            event.preventDefault();
+                            $.ajax({
+                                url: "./{{meter}}/" + link,
+                            }).done(function (data) {
+                                $("#result")
+                                    .empty()
+                                    .append($("<div>")
+                                            .addClass("well")
+                                            .append($("<strong>")
+                                                    .append($("<i>").addClass("icon-" + icon))
+                                                    .append(" " + link))
+                                            .append($("<br>"))
+                                            .append($("<pre>")
+                                                    .append(JSON.stringify(data,
+                                                                           undefined, 2))))
+                            })
+                        }))
+        });
+                  });
+    </script>
+
+  </body>
+</html>

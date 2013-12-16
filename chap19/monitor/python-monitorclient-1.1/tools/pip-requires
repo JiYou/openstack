@@ -1,0 +1,4 @@
+argparse
+prettytable>=0.6,<0.8
+requests>=0.8
+simplejson>=2.0.9

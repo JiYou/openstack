@@ -1,0 +1,102 @@
+============
+ V2 Web API
+============
+
+Resources
+=========
+
+.. rest-controller:: ceilometer.api.controllers.v2:ResourcesController
+   :webprefix: /v2/resources
+
+.. autotype:: ceilometer.api.controllers.v2.Resource
+   :members:
+
+Meters
+======
+
+.. rest-controller:: ceilometer.api.controllers.v2:MetersController
+   :webprefix: /v2/meters
+
+.. rest-controller:: ceilometer.api.controllers.v2:MeterController
+   :webprefix: /v2/meters
+
+Samples and Statistics
+======================
+
+.. autotype:: ceilometer.api.controllers.v2.Meter
+   :members:
+
+.. autotype:: ceilometer.api.controllers.v2.Sample
+   :members:
+
+.. autotype:: ceilometer.api.controllers.v2.Statistics
+   :members:
+
+Filtering Queries
+=================
+
+Many of the endpoints above accept a query filter argument, which
+should be a list of Query data structures:
+
+.. autotype:: ceilometer.api.controllers.v2.Query
+   :members:
+
+
+API and CLI query examples
+==========================
+
+
+CLI Queries
++++++++++++
+Ceilometer CLI Commands::
+
+     $ ceilometer --debug --os-username <username_here> --os-password <password_here> --os-auth-url http://localhost:5000/v2.0/ --os-tenant-name admin  meter-list
+
+or::
+
+     $ ceilometer --os-username admin --os-password password --os-tenant-name admin project-list
+
+
+.. note:: The *username*, *password*, and *tenant-name* options are required to be present in these commands or specified via environment variables. Note that the in-line commands will override the environment variables.
+
+
+API Queries
++++++++++++
+Ceilometer API calls:
+
+.. note:: To successfully query the Ceilometer you must first get a project-specific token from the Keystone service and add it to any API calls that you execute against that project. See the `Openstack credentials documentation <http://docs.openstack.org/api/quick-start/content/index.html#getting-credentials-a00665>`_ for additional details.
+
+A simple query to return a list of available meters::
+
+     $ curl -X GET -H 'X-Auth-Token:<inserttokenhere>' "http://localhost:8777/v2/meters"
+
+A query to return the list of resources::
+
+     $ curl -X GET -H 'X-Auth-Token:<inserttokenhere>' "http://localhost:8777/v2/resources"
+
+A query to return the list of meters, limited to a specific meter type::
+
+     $ curl -X GET -H 'X-Auth-Token:<inserttokenhere>' "http://localhost:8777/v2/meters/disk.root.size"
+
+A query using filters (see: `query filter section <http://docs.openstack.org/developer/ceilometer/webapi/v2.html#filtering-queries>`_)::
+
+     $ curl -X GET -H 'X-Auth-Token:<inserttokenhere>' "http://localhost:8777/v2/meters/instance?q.field=metadata.event_type&q.value=compute.instance.delete.start"
+
+Additional examples::
+
+     $ curl -X GET -H 'X-Auth-Token:<inserttokenhere>' "http://localhost:8777/v2/meters/disk.root.size?q.field=resource_id&q.op=eq&q.value=<resource_id_here>"
+
+or::
+
+     $ curl -X GET -H 'X-Auth-Token:<inserttokenhere>' "http://localhost:8777/v2/meters/instance?q.field=metadata.event_type&q.value=compute.instance.exists"
+
+and finally, a JSON-based example::
+
+     $ curl -X GET -H 'X-Auth-Token:<inserttokenhere>' -H 'Content-Type:application/json' -d '{"q":[{"field": "timestamp","op": "ge","value":"2013-04-01T13:34:17"}]}' http://localhost:8777/v2/meters
+
+
+Links
+=====
+
+.. autotype:: ceilometer.api.controllers.v2.Link
+   :members:

@@ -1,0 +1,68 @@
+{% load i18n sizeformat %}
+
+<h3>{% trans "Image Overview" %}</h3>
+
+<div class="info row-fluid detail">
+  <h4>{% trans "Info" %}</h4>
+  <hr class="header_rule">
+  <dl>
+    <dt>{% trans "Name" %}</dt>
+    <dd>{{ image.name|default:"None" }}</dd>
+    <dt>{% trans "ID" %}</dt>
+    <dd>{{ image.id|default:"None" }}</dd>
+    <dt>{% trans "Status" %}</dt>
+    <dd>{{ image.status|default:"Unknown"|title }}</dd>
+    <dt>{% trans "Public" %}</dt>
+    <dd>{{ image.is_public }}</dd>
+    <dt>{% trans "Checksum" %}</dt>
+    <dd>{{ image.checksum }}</dd>
+    <dt>{% trans "Created" %}</dt>
+    <dd>{{ image.created_at|default:"Unknown" }}</dd>
+    <dt>{% trans "Updated" %}</dt>
+    <dd>{{ image.updated_app|default:"Never updated" }}</dd>
+  </dl>
+</div>
+
+<div class="specs row-fluid detail">
+  <h4>{% trans "Specs" %}</h4>
+  <hr class="header_rule">
+  <dl>
+    <dt>{% trans "Size" %}</dt>
+    <dd>{{ image.size|filesizeformat }}</dd>
+    <dt>{% trans "Container Format" %}</dt>
+    <dd>{{ image.container_format|default:"None"|upper }}</dd>
+    <dt>{% trans "Disk Format" %}</dt>
+    <dd>{{ image.disk_format|default:"None"|upper }}</dd>
+  </dl>
+</div>
+
+<div class="properties row-fluid detail">
+  <h4>{% trans "Custom Properties" %}</h4>
+  <hr class="header_rule">
+  <dl>
+    {% if image.properties.architecture %}
+      <dt>{% trans "Architecture" %}</dt>
+      <dd>{{ image.properties.architecture }}</dd>
+    {% endif %}
+    {% if image.properties.kernel_id %}
+      <dt>{% trans "Kernel ID" %}</dt>
+      <dd>{{ image.properties.kernel_id }}</dd>
+    {% endif %}
+    {% if image.properties.ramdisk_id %}
+      <dt>{% trans "Ramdisk ID" %}</dt>
+      <dd>{{ image.properties.ramdisk_id }}</dd>
+    {% endif %}
+    {% if image.properties.image_state %}
+      <dt>{% trans "Euca2ools state" %}</dt>
+      <dd>{{ image.properties.image_state }}</dd>
+    {% endif %}
+    {% if image.properties.project_id %}
+      <dt>{% trans "Project ID" %}</dt>
+      <dd>{{ image.properties.project_id }}</dd>
+    {% endif %}
+    {% if image.properties.image_type %}
+      <dt>{% trans "Image Type" %}</dt>
+      <dd>{{ image.properties.image_type }}</dd>
+    {% endif %}
+  </dl>
+</div>

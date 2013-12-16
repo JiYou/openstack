@@ -1,0 +1,36 @@
+[DEFAULT]
+bind_port = 8080
+user = swift
+
+[pipeline:main]
+pipeline = healthcheck cache authtoken keystoneauth proxy-server
+
+[app:proxy-server]
+use = egg:swift#proxy
+allow_account_management = true
+account_autocreate = true
+
+[filter:keystoneauth]
+use = egg:swift#keystoneauth
+operator_roles = Member,admin,swiftoperator
+
+[filter:authtoken]
+paste.filter_factory = keystoneclient.middleware.auth_token:filter_factory
+delay_auth_decision = true
+signing_dir = /etc/swift/keystone-signing
+auth_protocol = http
+auth_host = %KEYSTONE_HOST%
+auth_port = 35357
+auth_token = %ADMIN_TOKEN%
+admin_tenant_name = %SERVICE_TENANT_NAME%
+admin_user = %SERVICE_USER%
+admin_password = %SERVICE_PASSWORD%
+
+[filter:cache]
+use = egg:swift#memcache
+
+[filter:catch_errors]
+use = egg:swift#catch_errors
+
+[filter:healthcheck]
+use = egg:swift#healthcheck

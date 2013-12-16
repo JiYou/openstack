@@ -1,0 +1,45 @@
+
+#---------------------------------------------
+# Python pip Sources
+#---------------------------------------------
+
+PIP_HOST=allinone-cinder
+
+#---------------------------------------------
+# MySQL Service
+#---------------------------------------------
+
+MYSQL_ROOT_PASSWORD=mysqlpassword
+MYSQL_HOST=allinone-cinder
+
+#---------------------------------------------
+# RabbitMQ Service
+#---------------------------------------------
+
+RABBITMQ_HOST=allinone-cinder
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=rabbit_password
+
+#---------------------------------------------
+# Keystone
+#---------------------------------------------
+
+MYSQL_KEYSTONE_USER=keystone
+MYSQL_KEYSTONE_PASSWORD=keystone_password
+KEYSTONE_HOST=allinone-cinder
+ADMIN_PASSWORD=admin_user_password
+ADMIN_TOKEN=admin_token
+SERVICE_TOKEN=$ADMIN_TOKEN
+ADMIN_USER=admin
+SERVICE_TENANT_NAME=service
+
+#---------------------------------------------
+# Cinder Service
+#---------------------------------------------
+
+CINDER_HOST=allinone-cinder
+MYSQL_CINDER_USER=cinder
+MYSQL_CINDER_PASSWORD=cinder_password
+KEYSTONE_CINDER_SERVICE_PASSWORD=keystone_cinder_password
+VOLUME_GROUP=cinder-volumes
+VOLUME_DISK=/dev/vdb

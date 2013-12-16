@@ -1,0 +1,16 @@
+.gitignore
+AUTHORS.txt
+LICENSE.txt
+README.rst
+TODO.txt
+setup.cfg
+setup.py
+setuptools_git/__init__.py
+setuptools_git/tests.py
+setuptools_git/utils.py
+setuptools_git.egg-info/PKG-INFO
+setuptools_git.egg-info/SOURCES.txt
+setuptools_git.egg-info/dependency_links.txt
+setuptools_git.egg-info/entry_points.txt
+setuptools_git.egg-info/top_level.txt
+setuptools_git.egg-info/zip-safe

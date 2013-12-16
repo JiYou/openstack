@@ -1,0 +1,4 @@
+export OS_TENANT_NAME=service
+export OS_USERNAME=ceilometer
+export OS_PASSWORD=keystone_ceilometer_password
+export OS_AUTH_URL="http://192.168.111.5:5000/v2.0/"

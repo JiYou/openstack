@@ -1,0 +1,10 @@
+[cinder.scheduler.filters]
+CapabilitiesFilter = cinder.openstack.common.scheduler.filters.capabilities_filter:CapabilitiesFilter
+RetryFilter = cinder.scheduler.filters.retry_filter:RetryFilter
+CapacityFilter = cinder.scheduler.filters.capacity_filter:CapacityFilter
+JsonFilter = cinder.openstack.common.scheduler.filters.json_filter:JsonFilter
+AvailabilityZoneFilter = cinder.openstack.common.scheduler.filters.availability_zone_filter:AvailabilityZoneFilter
+
+[cinder.scheduler.weights]
+CapacityWeigher = cinder.scheduler.weights.capacity:CapacityWeigher
+

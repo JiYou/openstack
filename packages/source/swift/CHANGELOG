@@ -1,0 +1,645 @@
+swift (1.8.0)
+
+    * Make rings' replica count adjustable
+
+    * Added a region tier to the ring above zones
+
+    * Added timing-based sorting of object servers on read requests
+
+    * Added support for auto-extract archive uploads
+
+    * Added support for bulk delete requests
+
+    * Added support for large objects with static manifests
+
+    * Added list_endpoints middleware to provide an API for determining where
+      the ring places data
+
+    * proxy-logging middleware can now handle logging for other middleware
+
+      proxy-logging should be used twice in the proxy pipeline. The first
+      handles middleware logs for requests that never made it all the way
+      to the server. The last handles requests that do make it to the server.
+
+      This is a change that may require an update to your proxy server
+      config file or custom middleware that you may be using. See the full
+      docs at http://docs.openstack.org/developer/swift/misc.html#module-swift.common.middleware.proxy_logging.
+
+    * Changed the default sample rate for a few high-traffic requests.
+
+      Added log_statsd_sample_rate_factor to globally tune the StatsD
+      sample rate. This tunable can be used to reduce StatsD traffic
+      proportionally for all metrics and is intended to replace
+      log_statsd_default_sample_rate, which is left alone for
+      backward-compatibility, should anyone be using it.
+
+    * Added swift_hash_path_prefix option to swift.conf
+
+      New deployments are advised to set this value to a random secret
+      to protect against hash collisions
+
+    * Added user-managed container quotas
+
+    * Added support for account-level quotas managed by an auth reseller
+
+    * Added --run-dir option to swift-init
+
+    * Added more options to swift-bench
+
+    * Added support for CORS "actual requests"
+
+    * Added fallocate_reserve option to protect against full drives
+
+    * Allow ring rebalance to take a seed
+
+    * Ring serialization will now produce the same gzip file (Py2.7)
+
+    * Added support to swift-drive-audit for handling rotated logs
+
+    * Added first-byte latency timings for GET requests
+
+    * Added per disk PUT timing monitoring support
+
+    * Added speed limit options for DB auditor
+
+    * Force log entries to be one line
+
+    * Ensure that fsync is used and not just fdatasync
+
+    * Improved handoff node selection
+
+    * Deprecated keystone is_admin feature
+
+    * Fix large objects with unicode in the segment names
+
+    * Update Swift's MemcacheRing to provide API compatibility with
+      standard Python memcache libraries
+
+    * Various other minor bug fixes and improvements
+
+swift (1.7.6)
+
+    * Better tempauth storage URL guessing
+
+    * Added --top option to swift-recon -d
+
+    * Allow optional, temporary healthcheck failure
+
+    * keystoneauth middleware now supports cross-tenant ACLs
+
+    * Add dispersion report flags to limit reports
+
+    * Add config option to turn eventlet debug on/off
+
+    * Added override option for swift-init's KILL_WAIT
+
+    * Added oldest and most recent replication pass to swift-recon
+
+    * Fixed 500 error response when GETing a many-segment manifest
+
+    * Memcached keys now use a delta timeout when possible
+
+    * Refactor DiskFile to hide temp file names and exts
+
+    * Remove IP-based container-sync ACLs from auth middlewares
+
+    * Fixed bug in deleting memcached account info data
+
+    * Fixed lazy-listing of object manifest segments
+
+    * Fixed bug where a ? in the object name caused an error
+
+    * Swift now returns 406 if it can't satisfy Accept
+
+    * Fix infinite recursion bug in object replicator
+
+    * Swift will now reject names with NULL characters
+
+    * Fixed object-auditor logging to use a minimum of unix sockets
+
+    * Various other minor bug fixes and improvements
+
+swift (1.7.5)
+
+    * Support OPTIONS verb, including CORS preflight requests
+
+    * Added support for custom log handlers
+
+    * Range support is extended to support GET requests with multiple ranges.
+      Multi-range GETs are not yet supported against large-object manifests.
+
+    * Cluster constraints are now settable by config
+
+    * Replicators can now run against specific devices or partitions
+
+    * swift-bench now supports running on multiple cores and multiple servers
+
+    * Added partition option to swift-get-nodes
+
+    * Allow underscores in account and user in tempauth via base64 encodings
+
+    * New option to the dispersion report to output the missing partitions
+
+    * Changed storage server StatsD metrics to report timings instead of
+      counts for errors. See the admin guide for the updated metric names.
+
+    * Removed a dependency on WebOb and replaced it with an internal module
+
+    * Fixed config parsing in swift-bench -x
+
+    * Fixed sample_rate in StatsD logging
+
+    * Track unlinks of async_pendings with StatsD
+
+    * Remove double GET on range requests
+
+    * Allow unsetting of X-Container-Sync-To and ACL headers
+
+    * DB reclamation now removes empty suffix directories
+
+    * Fix non-standard 100-continue behavior
+
+    * Allow object-expirer to delete the last copy of a versioned object
+
+    * Only set TCP_KEEPIDLE on systems where it is supported
+
+    * Fix stdin flush and fdatasync issues on BSD platforms
+
+    * Allow object-expirer to delete the last version of an object
+
+    * Various other minor bug fixes and improvements
+
+swift (1.7.4)
+
+    * Fix issue where early client disconnects may have caused a memory leak
+
+swift (1.7.2)
+
+    * Fix issue where memcache serialization was not properly loading
+      the config value
+
+swift (1.7.0)
+
+    * Use custom encoding for ring data instead of pickle
+
+      Serialize RingData in a versioned, custom format which is a combination
+      of a JSON-encoded header and .tostring() dumps of the
+      replica2part2dev_id arrays.  This format deserializes hundreds of times
+      faster than rings serialized with Python 2.7's pickle (a significant
+      performance regression for ring loading between Python 2.6 and Python
+      2.7).  Fixes bug 1031954.
+
+      The new implementation is backward-compatible; if a ring
+      does not begin with a new-style magic string, it is assumed to be an
+      old-style pickle-dumped ring and is handled as before.  So new Swift
+      code can read old rings, but old Swift code will not be able to read
+      newly-serialized rings.
+
+    * Do not use pickle for serialization in memcache, but JSON
+
+      To avoid issues on upgrades (unability to read pickled values, and cache
+      poisoning for old servers not understanding JSON), we add a
+      memcache_serialization_support configuration option, with the following
+      values:
+
+       0 = older, insecure pickle serialization
+       1 = json serialization but pickles can still be read (still insecure)
+       2 = json serialization only (secure and the default)
+
+      To avoid an instant full cache flush, existing installations should
+      upgrade with 0, then set to 1 and reload, then after some time (24
+      hours) set to 2 and reload. Support for 0 and 1 will be removed in
+      future versions.
+
+    * Update proxy-server StatsD logging. This is a significant change to the
+      existing StatsD intigration. Docs for this feature can be found in
+      doc/source/admin_guide.rst.
+
+    * Improved swift-bench to allow random object sizes and better usability
+
+    * Updated probe tests
+
+    * Replicator removal metrics are now generated on a per-device basis
+
+    * Made object replicator locking more optimistic
+
+    * Split proxy-server code into separate modules
+
+    * Fixed bug where swift-recon would not report all unmounted drives
+
+    * Fixed issue where a LockTimeout may have caused a file descriptor to
+      not be closed properly
+
+    * Fixed a bug where an error may have caused the proxy to stop returning
+      data to a client
+
+    * Fixed bug where expirer would get confused by odd deletion times
+
+    * Fixed a bug where auto-creating accounts would return an error if they
+      were recreated after being deleted
+
+    * Fix when rate_limit_after_segment kicks in
+
+    * fallocate() failures properly return HTTPInsufficientStorage from
+      object-server before reading from wsgi.input, allowing the proxy
+      server to quickly error_limit that node
+
+    * Fixed error with large object manifests and x-newest headers on GET
+
+    * Various other minor bug fixes and improvements
+
+swift (1.6.0)
+
+    * Removed bin/swift and swift/common/client.py from the swift repo. These
+      tools are now managed in the python-swiftclient project. The
+      python-swiftclient project is a second deliverable of the openstack
+      swift project.
+
+    * Moved swift_auth (openstack keystone) middleware from keystone project
+      into swift project
+
+    * Made dispersion report work with any replica count other than 3. This
+      substantially affects the JSON output of the dispersion report, and any
+      tools written to consume this output will need to be updated.
+
+    * Added Solaris (Illumos) compatibility
+
+    * Added -a option to swift-get-nodes to show all handoffs
+
+    * Add UDP protocol support for logger
+
+    * Added config options for rate limiting of large object downloads.
+
+    * Added config option `log_handoffs` (defaults to True) to proxy server
+      to log and update statsd with information about when a handoff node is
+      used. This is helpful to track the health of the cluster.
+
+    * swift-bench can now use auth 2.0
+
+    * Support forbidding substrings based on a regexp in name_filter
+      middleware
+
+    * Hardened internal server processes so only authorized methods can be
+      called.
+
+    * Made ranged requests on large objects work correctly when size of
+      manifest file is not 0 byte
+
+    * Added option to dispersion report to print 404s to stdout
+
+    * Fix object replication on older rsync versions when using ipv4
+
+    * Fixed bug with container reclaim/report race
+
+    * Make object server's caching more configurable.
+
+    * Check disk failure before syncing for each partition
+
+    * Allow special characters to be referenced by manifest objects
+
+    * Validate devices and partitions to avoid directory traversals
+
+    * Support WebOb 1.2
+
+    * Ensure that accessing the ring devs reloads the ring if necessary.
+      Specifically, this allows replication to work when it has been started
+      with an empty ring.
+
+    * Various other minor bug fixes and improvements
+
+swift (1.5.0)
+
+    * New option to toggle SQLite database preallocation with account
+      and container servers.
+
+      IMPORTANT:
+      The default for database preallocation is now off when before
+      it was always on. This will affect performance on clusters that
+      use standard drives with shared account, container, object
+      servers. Such deployments will need to update their
+      configurations to turn database preallocation back on (see
+      account-server.conf-sample and container-server.conf.sample
+      files).
+
+      If you are using dedicated account and container servers with
+      SSDs, you should defragment your file systems after upgrade and
+      should notice dramatically less disk usage.
+
+    * swift3 middleware removed and moved to http://github.com/fujita/swift3.
+      This will require a config change in the proxy server and adds a new
+      dependency for deployers using this middleware.
+
+    * Moved proxy server logging to middleware. This requires a config change
+      in the proxy server.
+
+    * Added object versioning feature. (See docs for full description)
+
+    * Add statsd logging throughout the system (beta, some event names may
+      change)
+
+    * Expanded swift-recon middleware support
+
+    * The ring builder now supports as-unique-as-possible partition
+      placement, unified balancing methods, and can work on more than one
+      device at a time.
+
+    * Numerous bug fixes to StaticWeb (previously unusable at scale).
+
+    * Bug fixes to all middleware to allow passthrough requests under various
+      conditions and to share pre-authed request code (which previously had
+      differing behaviors and interaction bugs).
+
+    * Bug fix to object expirer that could cause infinite looping.
+
+    * Added optional delay to account reaping.
+
+    * Async-pending write optimization.
+
+    * Dispersion tools now support multiple auth versions
+
+    * Updated man pages
+
+    * Proxy server can now deny requests to particular hostnames
+
+    * Updated docs for domain remap middleware
+
+    * Updated docs for cname lookup middleware
+
+    * Made swift CLI binary easier to wrap
+
+    * Proxy will now also return X-Timestamp header
+
+    * Added associated projects doc as a place to track ecosystem projects
+
+    * end_marker made consistent across both object and container listings
+
+    * Various other minor bug fixes and improvements
+
+swift (1.4.8)
+
+    * Added optional max_containers_per_account restriction
+
+    * Added alternate metadata header removal method
+
+    * Added optional name_check middleware filter
+
+    * Added support for venv-based test runs with tox
+
+    * StaticWeb behavior change with X-Web-Mode: true and
+      non-StaticWeb-enabled containers (immediately 404s instead of passing
+      the request on down the WSGI pipeline).
+
+    * Fixed typo in swift-dispersion-report JSON output.
+
+    * Swift-Recon-related fix to create temporary files on the same disk as
+      their final destinations.
+
+    * Updated return codes in swift3 middleware
+
+    * Fixed swift3 middleware to allow Content-Range header in response
+
+    * Updated swift.common.client and swift CLI tool with auth 2.0 changes
+
+    * Swift CLI tool now supports common openstack auth args
+
+    * Body of HTTP responses now included in error messages of swift CLI tool
+
+    * Refactored some ring building functions for clarity and simplicity
+
+swift (1.4.7)
+
+    * Improvements to account and container replication.
+
+    * Fix for account servers allowing .pending to exist before .db.
+
+    * Fixed possible key-guessing exploit in formpost.
+
+    * Fixed bug in ring builder when removing a large percentage of devices.
+
+    * Swift CLI tool now supports openstack-standard CLI flags.
+
+    * New JSON output option for swift-dispersion-report.
+
+    * Removed old stats tools.
+
+    * Other bug fixes and documentation updates.
+
+swift (1.4.6)
+
+    * TempURL and FormPost middleware added
+
+    * Added memcache.conf option
+
+    * Dropped eval-based json parser fallback
+
+    * Properly lose all groups when dropping privileges
+
+    * Fix permissions when creating files
+
+    * Fixed bug regarding negative Content-Length in requests
+
+    * Consistent formatting on Last-Modified response header
+
+    * Added timeout option to swift-recon
+
+    * Allow arguments to be passed to nosetest
+
+    * Removed tools/rfc.sh
+
+    * Other minor bug fixes
+
+swift (1.4.5)
+
+    * New swift-orphans and swift-oldies command line tools to detect
+      orphaned Swift processes and long running processes.
+
+    * Command line tool "swift" now supports marker queries.
+
+    * StaticWeb middleware improved to save an extra request when
+      possible.
+
+    * Updated swift-init to support swift-object-expirer.
+
+    * Fixed object replicator timeout handling [bug 814263].
+
+    * Fixed accept header 503 vs. 400 [bug 891247].
+
+    * More exception handling for auditors.
+
+    * Doc updates for PPA [bug 905608].
+
+    * Doc updates to explain replication more clearly [bug 906976].
+
+    * Updated SAIO instructions to no longer mention ~/swift/trunk.
+
+    * Fixed docstrings in the ring code.
+
+    * PEP8 Updates.
+
+swift (1.4.4)
+
+    * Fixes to prevent socket hoarding (memory leak)
+
+    * Add sockstat info to recon.
+
+    * Fixed leak from SegmentedIterable.
+
+    * Fixed bufferedhttp to deref socks and fps.
+
+    * Add support for OS Auth API version 2.
+
+    * Make Eventlet's WSGI server log differently.
+
+    * Updated TimeoutError and except Exception refs.
+
+    * Fixed time-sensitive tests.
+
+    * Fixed object manifest etags.
+
+    * Fixes for swift-recon disk usage distribution graph.
+
+    * Adding new manpages for configuration files.
+
+    * Change bzr to swift in getting_started doc.
+
+    * Fixes the HTTPConflict import.
+
+    * Expiring Objects Support.
+
+    * Fixing bug with x-trans-id.
+
+    * Requote the source when doing a COPY.
+
+    * Add documentation for Swift Recon.
+
+    * Make drive audit regexes detect 4-letter drives.
+
+    * Adding what acc/cont/obj into the ratelimit error messages.
+
+    * Query only specific zone via swift-recon.
+
+swift (1.4.3)
+
+    * Additional quarantine catching code.
+
+    * Added client_ip to all proxy log lines not otherwise containing it.
+
+    * Content-Type is now application/xml for "GET services/bucket" swift3
+      middleware requests.
+
+    * Alpha release of the Swift Recon Experiment
+
+    * Fix last modified date for swift3 middleware.
+
+    * Fix to clear account/container metadata on account/container deletion.
+
+    * Fix for corner case regarding X-Newest.
+
+    * Fix for object auditor running out of file descriptors.
+
+    * Fix to return all proper headers for manifest objects.
+
+    * Fix to the swift tool to strip any leading slashes on file names when
+      uploading.
+
+swift (1.4.2)
+
+    * Removed stats/logging code from Swift [now in separate slogging project].
+
+    * Container Synchronization Feature - First Edition
+
+    * Fix swift3 authentication bug about the Date and X-Amz-Date handling.
+
+    * Changing ratelimiting so that it only limits PUTs/DELETEs.
+
+    * Object POSTs are implemented as COPYs now by default (you can revert to
+      previous implementation with conf object_post_as_copy = false)
+
+    * You can specify X-Newest: true on GETs and HEADs to indicate you want
+      Swift to query all backend copies and return the newest version
+      retrieved.
+
+    * Object COPY requests now always copy the newest object they can find.
+
+    * Account and container GETs and HEADs now shuffle the nodes they use to
+      balance load.
+
+    * Fixed the infinite charset: utf-8 bug
+
+    * This fixes the bug that drop_buffer_cache() doesn't work on systems where
+      off_t isn't 64 bits.
+
+swift (1.4.1)
+
+    * st renamed to swift
+
+    * swauth was separated froms swift. It is now its own project and can be
+      found at https://github.com/gholt/swauth.
+
+    * tempauth middleware added as an extremely limited auth system for dev
+      work.
+
+    * Account and container listings now properly labeled UTF-8 (previously the
+      label was "utf8").
+
+    * Accounts are auto-created if an auth token is valid when the
+      account_autocreate proxy config parameter is set to true.
+
+swift (1.4.0)
+
+    * swift-bench now cleans up containers it creates.
+
+    * WSGI servers now load WSGI filters and applications after forking for
+      better plugin support.
+
+    * swauth-cleanup-tokens now handles 404s on token containers and tokens
+      better.
+
+    * Proxy logs the remote IP address as the client IP in the absence of
+      X-Forwarded-For and X-Cluster-Client-IP headers instead of - like it did
+      before.
+
+    * Swift3 WSGI middleware added support for param-signed URLs.
+
+    * swauth- scripts now exit with proper exit codes.
+
+    * Fixed a bug where allowed_headers weren't honored for HEAD requests.
+
+    * Double quarantining of corrupted sqlite3 databases now works.
+
+    * Fix for Object replicator breaking when running object replicator with no
+      objects on the server.
+
+    * Added the Accept-Ranges header to GET and HEAD requests.
+
+    * When a single object has multiple async pending updates on a single
+      device, only latest async pending is now sent.
+
+    * Fixed issue of Swift3 WSGI middleware not working correctly with '/' in
+      object names.
+
+    * Renamed swift-stats-* to swift-dispersion-* to avoid confusion with log
+      stats stuff.
+
+    * Added X-Trans-Id transaction id header to every response.
+
+    * Fixed a Python 2.7 compatibility problem.
+
+    * Now using bracketed notation for ip literals in rsync calls, so
+      compressed ipv6 literals work.
+
+    * Added a container stats collector and refactoring some of the stats code.
+
+    * Changed subdir nodes in XML formatted object listings to align with
+      object nodes. Now: <subdir name="foo"><name>foo</name></subdir> Before:
+      <subdir name="foo" />.
+
+    * Fixed bug in Swauth to support for multiple swauth instances.
+
+    * swift-ring-builder: Added list_parts command which shows common
+      partitions for a given list of devices.
+
+    * Object auditor now shows better statistics updates in the logs.
+
+    * Stats uploaders now allow overrides for source_filename_pattern and
+      new_log_cutoff values.

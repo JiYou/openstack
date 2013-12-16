@@ -1,0 +1,10 @@
+[DEFAULT]
+rabbit_password = %RABBITMQ_PASSWORD%
+rabbit_host = %RABBITMQ_HOST%
+state_path = /opt/stack/data/monitor
+osapi_servicemanage_extension = monitor.api.openstack.servicemanage.contrib.standard_extensions
+root_helper = sudo /usr/local/bin/monitor-rootwrap /etc/monitor/rootwrap.conf
+api_paste_config = /etc/monitor/api-paste.ini
+sql_connection = mysql://%MYSQL_MONITOR_USER%:%MYSQL_MONITOR_PASSWORD%@%MYSQL_HOST%/monitor?charset=utf8
+verbose = True
+auth_strategy = keystone

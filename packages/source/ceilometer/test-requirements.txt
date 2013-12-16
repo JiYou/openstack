@@ -1,0 +1,23 @@
+coverage
+discover
+httplib2
+mock
+mox
+fixtures>=0.3.12
+Babel>=0.9.6
+# NOTE(dhellmann): Ming is necessary to provide the Mongo-in-memory
+# implementation of MongoDB.
+Ming>=0.3.4
+http://tarballs.openstack.org/nova/nova-master.tar.gz#egg=nova
+# We should use swift>1.7.5, but it's not yet available
+swift
+# Swift dep that is not necessary if we depend on swift>1.7.5
+netifaces
+# Docs Requirements
+sphinx
+sphinxcontrib-pecanwsme>=0.2
+docutils==0.9.1 # for bug 1091333, remove after sphinx >1.1.3 is released.
+python-spidermonkey
+python-subunit
+testrepository>=0.0.13
+testtools>=0.9.29

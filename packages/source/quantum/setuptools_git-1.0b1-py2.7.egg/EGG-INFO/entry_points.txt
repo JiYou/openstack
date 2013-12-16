@@ -1,0 +1,4 @@
+
+        [setuptools.file_finders]
+        git=setuptools_git:listfiles
+        

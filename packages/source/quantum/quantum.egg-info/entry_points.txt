@@ -1,0 +1,18 @@
+[console_scripts]
+quantum-debug = quantum.debug.shell:main
+quantum-server = quantum.server:main
+quantum-nec-agent = quantum.plugins.nec.agent.nec_quantum_agent:main
+quantum-dhcp-agent-dnsmasq-lease-update = quantum.agent.linux.dhcp:Dnsmasq.lease_update
+quantum-lbaas-agent = quantum.plugins.services.agent_loadbalancer.agent:main
+quantum-dhcp-agent = quantum.agent.dhcp_agent:main
+quantum-db-manage = quantum.db.migration.cli:main
+quantum-ryu-agent = quantum.plugins.ryu.agent.ryu_quantum_agent:main
+quantum-check-nvp-config = quantum.plugins.nicira.nicira_nvp_plugin.check_nvp_config:main
+quantum-l3-agent = quantum.agent.l3_agent:main
+quantum-metadata-agent = quantum.agent.metadata.agent:main
+quantum-ns-metadata-proxy = quantum.agent.metadata.namespace_proxy:main
+quantum-linuxbridge-agent = quantum.plugins.linuxbridge.agent.linuxbridge_quantum_agent:main
+quantum-netns-cleanup = quantum.agent.netns_cleanup_util:main
+quantum-openvswitch-agent = quantum.plugins.openvswitch.agent.ovs_quantum_agent:main
+quantum-ovs-cleanup = quantum.agent.ovs_cleanup_util:main
+

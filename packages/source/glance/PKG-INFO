@@ -1,0 +1,16 @@
+Metadata-Version: 1.1
+Name: glance
+Version: 2013.1
+Summary: The Glance project provides services for discovering, registering, and retrieving virtual machine images
+Home-page: http://glance.openstack.org/
+Author: OpenStack
+Author-email: openstack@lists.launchpad.net
+License: Apache License (2.0)
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Environment :: No Input/Output (Daemon)
+Classifier: Environment :: OpenStack

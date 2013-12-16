@@ -1,0 +1,115 @@
+Vsm Style Commandments
+=========================
+
+Step 1: Read http://www.python.org/dev/peps/pep-0008/
+Step 2: Read http://www.python.org/dev/peps/pep-0008/ again
+Step 3: Read on
+
+Imports
+-------
+- thou shalt not import objects, only modules
+- thou shalt not import more than one module per line
+- thou shalt not make relative imports
+- thou shalt organize your imports according to the following template
+
+::
+  # vim: tabstop=4 shiftwidth=4 softtabstop=4
+  {{stdlib imports in human alphabetical order}}
+  \n
+  {{monitor imports in human alphabetical order}}
+  \n
+  \n
+  {{begin your code}}
+
+
+General
+-------
+- thou shalt put two newlines twixt toplevel code (funcs, classes, etc)
+- thou shalt put one newline twixt methods in classes and anywhere else
+- thou shalt not write "except:", use "except Exception:" at the very least
+- thou shalt include your name with TODOs as in "TODO(termie)"
+- thou shalt not name anything the same name as a builtin or reserved word
+- thou shalt not violate causality in our time cone, or else
+
+
+Human Alphabetical Order Examples
+---------------------------------
+::
+  import httplib
+  import logging
+  import random
+  import StringIO
+  import time
+  import unittest
+
+  from monitor import flags
+  from monitor import test
+  from monitor.auth import users
+  from monitor.endpoint import api
+  from monitor.endpoint import cloud
+
+Docstrings
+----------
+  """A one line docstring looks like this and ends in a period."""
+
+
+  """A multiline docstring has a one-line summary, less than 80 characters.
+
+  Then a new paragraph after a newline that explains in more detail any
+  general information about the function, class or method. Example usages
+  are also great to have here if it is a complex class for function. After
+  you have finished your descriptions add an extra newline and close the
+  quotations.
+
+  When writing the docstring for a class, an extra line should be placed
+  after the closing quotations. For more in-depth explanations for these
+  decisions see http://www.python.org/dev/peps/pep-0257/
+
+  If you are going to describe parameters and return values, use Sphinx, the
+  appropriate syntax is as follows.
+
+  :param foo: the foo parameter
+  :param bar: the bar parameter
+  :returns: description of the return value
+
+  """
+
+Text encoding
+----------
+- All text within python code should be of type 'unicode'.
+
+    WRONG:
+
+    >>> s = 'foo'
+    >>> s
+    'foo'
+    >>> type(s)
+    <type 'str'>
+
+    RIGHT:
+
+    >>> u = u'foo'
+    >>> u
+    u'foo'
+    >>> type(u)
+    <type 'unicode'>
+
+- Transitions between internal unicode and external strings should always
+  be immediately and explicitly encoded or decoded.
+
+- All external text that is not explicitly encoded (database storage,
+  commandline arguments, etc.) should be presumed to be encoded as utf-8.
+
+    WRONG:
+
+    mystring = infile.readline()
+    myreturnstring = do_some_magic_with(mystring)
+    outfile.write(myreturnstring)
+
+    RIGHT:
+
+    mystring = infile.readline()
+    mytext = s.decode('utf-8')
+    returntext = do_some_magic_with(mytext)
+    returnstring = returntext.encode('utf-8')
+    outfile.write(returnstring)

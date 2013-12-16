@@ -1,0 +1,12 @@
+export http_proxy="http://proxy.pd.intel.com:911"
+export https_proxy="http://proxy.pd.intel.com:911"
+export ftp_proxy="http://proxy.pd.intel.com:911"
+#MASTER=master
+SLAVES="master slave"
+AGENTS="master slave"
+COLLECTORS="master"
+#RUN_USER=jiyou
+#LOGIN_PASSWORD=
+MASTER=master
+LOGIN_PASSWORD=zaq12wsx
+

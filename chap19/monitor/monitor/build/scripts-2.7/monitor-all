@@ -1,0 +1,68 @@
+#!/usr/bin/python
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+# Copyright 2011 OpenStack, LLC
+# Copyright 2010 United States Government as represented by the
+# Administrator of the National Aeronautics and Space Administration.
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License");
+#    you may not use this file except in compliance with the License.
+#    You may obtain a copy of the License at
+#
+#        http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS,
+#    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#    See the License for the specific language governing permissions and
+#    limitations under the License.
+
+"""Starter script for All monitor services.
+
+This script attempts to start all the monitor services in one process.  Each
+service is started in its own greenthread.  Please note that exceptions and
+sys.exit() on the starting of a service are logged and the script will
+continue attempting to launch the rest of the services.
+
+"""
+
+import eventlet
+eventlet.monkey_patch()
+
+import os
+import sys
+
+
+possible_topdir = os.path.normpath(os.path.join(os.path.abspath(
+        sys.argv[0]), os.pardir, os.pardir))
+if os.path.exists(os.path.join(possible_topdir, "monitor", "__init__.py")):
+    sys.path.insert(0, possible_topdir)
+
+
+from monitor import flags
+from monitor.openstack.common import log as logging
+from monitor import service
+from monitor import utils
+
+
+if __name__ == '__main__':
+    flags.parse_args(sys.argv)
+    logging.setup("monitor")
+    LOG = logging.getLogger('monitor.all')
+
+    utils.monkey_patch()
+    servers = []
+    # monitor-api
+    try:
+        servers.append(service.WSGIService('osapi_servicemanage'))
+    except (Exception, SystemExit):
+        LOG.exception(_('Failed to load osapi_servicemanage'))
+
+    for binary in ['monitor-servicemanage', 'monitor-scheduler']:
+        try:
+            servers.append(service.Service.create(binary=binary))
+        except (Exception, SystemExit):
+            LOG.exception(_('Failed to load %s'), binary)
+    service.serve(*servers)
+    service.wait()

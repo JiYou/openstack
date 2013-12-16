@@ -1,0 +1,10 @@
+[monitor.scheduler.filters]
+CapabilitiesFilter = monitor.openstack.common.scheduler.filters.capabilities_filter:CapabilitiesFilter
+RetryFilter = monitor.scheduler.filters.retry_filter:RetryFilter
+CapacityFilter = monitor.scheduler.filters.capacity_filter:CapacityFilter
+JsonFilter = monitor.openstack.common.scheduler.filters.json_filter:JsonFilter
+AvailabilityZoneFilter = monitor.openstack.common.scheduler.filters.availability_zone_filter:AvailabilityZoneFilter
+
+[monitor.scheduler.weights]
+CapacityWeigher = monitor.scheduler.weights.capacity:CapacityWeigher
+

@@ -1,0 +1,42 @@
+import impl_kombu
+
+class ConnectionContext(object):
+    def __init__(self):
+        self.connection = impl_kombu.Connection()
+
+    def _done(self):
+        if self.connection:
+            try:
+                self.connection.close()
+            except Exception:
+                pass
+        self.connection = None
+
+    def __del__(self):
+        self._done()
+
+    def close(self):
+        self._done()
+
+    def create_consumer(self, topic, proxy, fanout=False):
+        self.connection.create_consumer(topic, proxy, fanout)
+
+    def create_worker(self, topic, proxy, pool_name):
+        self.connection.create_worker(topic, proxy, pool_name)
+
+    def consume_in_thread(self):
+        self.connection.consume_in_thread()
+
+    def __getattr__(self, key):
+        if self.connection:
+            return getattr(self.connection, key)
+        else:
+            raise Exception('Invalid reuse of an RPC connection.')
+
+
+
+def create_connection():
+    return impl_kombu.Connection()
+
+def call(topic, msg, timeout=None):
+    return impl_kombu.call(topic, msg, timeout)

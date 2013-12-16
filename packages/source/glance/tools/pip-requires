@@ -1,0 +1,37 @@
+# The greenlet package must be compiled with gcc and needs
+# the Python.h headers. Make sure you install the python-dev
+# package to get the right headers...
+greenlet>=0.3.1
+
+SQLAlchemy>=0.7,<=0.7.9
+anyjson
+eventlet>=0.9.12
+PasteDeploy
+routes
+WebOb>=1.2
+wsgiref
+argparse
+boto
+sqlalchemy-migrate>=0.7
+httplib2
+kombu
+pycrypto>=2.1.0alpha1
+iso8601>=0.1.4
+oslo.config>=1.1.0
+
+
+# For Swift storage backend.
+python-swiftclient>=1.2,<2
+
+# Note you will need gcc buildtools installed and must
+# have installed libxml headers for lxml to be successfully
+# installed using pip, therefore you will need to install the
+# libxml2-dev and libxslt-dev Ubuntu packages.
+lxml
+
+# For paste.util.template used in keystone.common.template
+Paste
+
+passlib
+jsonschema
+python-keystoneclient>=0.2.0

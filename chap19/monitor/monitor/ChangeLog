@@ -1,0 +1,6 @@
+commit a4856c4e3a2a40150fad9257ce489125ca3458f4
+Merge: f328fd8 995a310
+Author: You, Ji <ji.you@intel.com>
+Date:   Wed May 8 17:13:23 2013 +0000
+
+    Merge "Fix ability to add custom servicemanage_backend_name" into stable/grizzly

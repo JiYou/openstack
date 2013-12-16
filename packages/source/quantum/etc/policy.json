@@ -1,0 +1,71 @@
+{
+    "admin_or_owner": "role:admin or tenant_id:%(tenant_id)s",
+    "admin_or_network_owner": "role:admin or tenant_id:%(network_tenant_id)s",
+    "admin_only": "role:admin",
+    "regular_user": "",
+    "shared": "field:networks:shared=True",
+    "external": "field:networks:router:external=True",
+    "default": "rule:admin_or_owner",
+
+    "extension:provider_network:view": "rule:admin_only",
+    "extension:provider_network:set": "rule:admin_only",
+
+    "extension:router:view": "rule:regular_user",
+    "extension:router:set": "rule:admin_only",
+    "extension:router:add_router_interface": "rule:admin_or_owner",
+    "extension:router:remove_router_interface": "rule:admin_or_owner",
+
+    "extension:port_binding:view": "rule:admin_only",
+    "extension:port_binding:set": "rule:admin_only",
+
+    "subnets:private:read": "rule:admin_or_owner",
+    "subnets:private:write": "rule:admin_or_owner",
+    "subnets:shared:read": "rule:regular_user",
+    "subnets:shared:write": "rule:admin_only",
+
+    "create_subnet": "rule:admin_or_network_owner",
+    "get_subnet": "rule:admin_or_owner or rule:shared",
+    "update_subnet": "rule:admin_or_network_owner",
+    "delete_subnet": "rule:admin_or_network_owner",
+
+    "create_network": "",
+    "get_network": "rule:admin_or_owner or rule:shared or rule:external",
+    "create_network:shared": "rule:admin_only",
+    "create_network:router:external": "rule:admin_only",
+    "update_network": "rule:admin_or_owner",
+    "delete_network": "rule:admin_or_owner",
+
+    "create_port": "",
+    "create_port:mac_address": "rule:admin_or_network_owner",
+    "create_port:fixed_ips": "rule:admin_or_network_owner",
+    "create_port:port_security_enabled": "rule:admin_or_network_owner",
+    "get_port": "rule:admin_or_owner",
+    "update_port": "rule:admin_or_owner",
+    "update_port:fixed_ips": "rule:admin_or_network_owner",
+    "update_port:port_security_enabled": "rule:admin_or_network_owner",
+    "delete_port": "rule:admin_or_owner",
+
+    "extension:service_type:view_extended": "rule:admin_only",
+    "create_service_type": "rule:admin_only",
+    "update_service_type": "rule:admin_only",
+    "delete_service_type": "rule:admin_only",
+    "get_service_type": "rule:regular_user",
+
+    "create_qos_queue": "rule:admin_only",
+    "get_qos_queue": "rule:admin_only",
+    "get_qos_queues": "rule:admin_only",
+
+    "update_agent": "rule:admin_only",
+    "delete_agent": "rule:admin_only",
+    "get_agent": "rule:admin_only",
+    "get_agents": "rule:admin_only",
+
+    "create_dhcp-network": "rule:admin_only",
+    "delete_dhcp-network": "rule:admin_only",
+    "get_dhcp-networks": "rule:admin_only",
+    "create_l3-router": "rule:admin_only",
+    "delete_l3-router": "rule:admin_only",
+    "get_l3-routers": "rule:admin_only",
+    "get_dhcp-agents": "rule:admin_only",
+    "get_l3-agents": "rule:admin_only"
+}

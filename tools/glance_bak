@@ -1,0 +1,133 @@
+#!/bin/bash
+
+set -e
+
+#---------------------------------------------------
+# Set up ENV
+#---------------------------------------------------
+
+export OS_USERNAME=""
+export OS_AUTH_KEY=""
+export OS_AUTH_TENANT=""
+export OS_STRATEGY=""
+export OS_AUTH_STRATEGY=""
+export OS_AUTH_URL=""
+
+export ADMIN_USER=%ADMIN_USER%
+export SERVICE_TOKEN=%ADMIN_TOKEN%
+export ADMIN_PASSWORD=%ADMIN_PASSWORD%
+export KEYSTONE_HOST=%KEYSTONE_HOST%
+export SERVICE_ENDPOINT=%SERVICE_ENDPOINT%
+api_logfile=%api_logfile%
+registry_logfile=%registry_logfile%
+GLANCE_DIR=%GLANCE_DIR%
+
+#---------------------------------------------------
+# Check keystone is running?
+#---------------------------------------------------
+
+is_api_running=`ps aux | grep glance-api | grep -v grep | wc -l`
+is_registry_running=`ps aux | grep glance-registry | grep -v grep | wc -l`
+
+
+function start_glance()
+{
+    cd $GLANCE_DIR
+    nohup python ./bin/glance-registry \
+      --config-file=/etc/glance/glance-registry.conf\
+      >/var/log/nova/$registry_logfile 2>&1 &
+
+    echo "glance-registry is starting, please wait."
+    sleep 5
+    cat $registry_logfile | tail -5    
+
+    nohup python ./bin/glance-api      
+      --config-file=/etc/glance/glance-api.conf      
+      >/var/log/nova/$api_logfile  2>&1 &
+
+    echo "glance-api is starting, please wait."
+    sleep 5
+    cat $API_logfile | tail -5
+
+
+}
+
+case "$1" in
+    status)
+        if [[ $is_api_running -gt 0 ]]; then
+            echo "glance-api is running"
+            tail -5 $logfile
+        else
+            echo "glance-api is not running"
+            cat $logfile | grep -i "error" | tail -5
+        fi
+
+        if [[ $is_registry_running -gt 0 ]]; then
+            echo "glance-registry is running"
+            tail -5 $logfile
+        else
+            echo "glance-registry is not running"
+            cat $logfile | grep -i "error" | tail -5
+        fi
+        ;;
+    start)
+        if [[ $is_api_running -gt 0 && $is_registry_running -gt 0 ]]; then
+            echo "glance is running"
+        else
+            nkill glance-api >/dev/null 2>&1 &
+            nkill glance-registry >/dev/null 2>&1 &
+
+            start_glance
+        fi
+        ;;
+    restart)
+        nkill glance-api >/dev/null 2>&1 &
+        nkill glance-registry >/dev/null 2>&1 &
+
+        start_glance
+        ;;
+    stop)
+        if [[ $is_api_running -eq 0 && $is_registry_running -eq 0 ]]; then
+            echo "glance is not running."
+        else 
+            if [[ $is_api_running -gt 0 ]]; then
+                echo "begin to stop glance-api..."
+                nkill glance-api >/dev/null 2>&1 &
+            else
+                echo "glance-api is not running."
+            fi
+        
+            if [[ $is_registry_running -gt 0 ]]; then
+                echo "begin to stop glance-registry..."
+                nkill glance-registry >/dev/null 2>&1 &
+            else
+                echo "glance-registry is not running."
+            fi
+        fi
+        ;;
+    test)
+        if [[ $is_api_running -eq 0 && $is_registry_running -eq 0 ]]; then
+            echo "glance is not running."
+        elif [[ $is_api_running -eq 0 ]]; then
+            echo "glance-api is not running."
+        elif [[ $is_registry_running -eq 0 ]]; then
+            echo "glance-registry is not running."
+        else
+             export http_proxy=""
+             export https_proxy=""
+             export ftp_proxy=""
+             echo "querying the uploaded image(s)..."
+             glance image-list
+        fi
+        ;;
+    *)
+         echo "Usage: /etc/init.d/glance {start|stop|restart|status|test}"
+         exit 0;;
+
+
+
+
+
+
+
+

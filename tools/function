@@ -1,0 +1,169 @@
+function find_and_run() {
+    old_dir=`pwd`
+    fl=$1
+    num=`find . -name "$fl" | wc -l`
+    while [ $num -eq 0 ]; do
+        cd ..
+        num=`find . -name "$fl" | wc -l`
+        if [[ $num -gt 0 ]]; then
+            for x in `find . -name "$fl"`; do
+                ./$x
+            done
+        fi
+    done
+    cd $old_dir
+}
+
+function set_password {
+    set +o xtrace
+    var=$1;
+    pw=${!var}
+    localrc=$TOP_DIR/localrc
+    if [ ! $pw ]; then
+        if [ ! -e $localrc ]; then
+            touch $localrc
+        fi
+        pw=`openssl rand -hex 10`
+        eval "$var=$pw"
+        echo "$var=$pw" >> $localrc
+    fi
+    set -o xtrace
+}
+
+function mysql_cmd() {
+    set +o xtrace
+    mysql -uroot -p$MYSQL_ROOT_PASSWORD -h$MYSQL_HOST -e "$@"
+    set -o xtrace
+}
+
+function source_install() {
+    olddir=`pwd`
+    cd $DEST/$1
+    [[ -d .git ]] && git checkout master
+    python setup.py build
+    python setup.py develop
+    cd $olddir
+}
+
+function add_line() {
+    local file_content=$2
+    local add_content=$3
+    local init_file=$1
+    local line_number=`grep -n "$file_content" $init_file`
+    local line_number=${line_number%%:*}
+    for n in $line_number
+    do
+        sed -i "${n} a$add_content"  $init_file
+    done
+}
+
+function get_id () {
+    export SERVICE_TOKEN=$ADMIN_TOKEN
+    export SERVICE_ENDPOINT=http://$KEYSTONE_HOST:35357/v2.0
+    echo `"$@" | awk '/ id / { print $4 }'`
+}
+
+function get_tenant {
+    set +o xtrace
+    var=$1;
+    pw=${!var}
+    export SERVICE_TOKEN=$ADMIN_TOKEN
+    export SERVICE_ENDPOINT=http://$KEYSTONE_HOST:35357/v2.0
+    echo $SERVICE_TOKEN
+    pw=`keystone tenant-list | grep $2 | awk '{print $2}'`
+    eval "$var=$pw"
+    set -o xtrace
+}
+
+function get_role {
+    set +o xtrace
+    var=$1;
+    pw=${!var}
+    export SERVICE_TOKEN=$ADMIN_TOKEN
+    export SERVICE_ENDPOINT=http://$KEYSTONE_HOST:35357/v2.0
+    pw=`keystone role-list | grep $2 | awk '{print $2}'`
+    eval "$var=$pw"
+    set -o xtrace
+}
+
+function setup_iptables() {
+
+    sed -i "/exit/d" /etc/rc.local
+    sed -i "/iptable/d" /etc/rc.local
+
+    for n in 3306 5672 5000 35357 9191 9292 8773 8774 8775 8776 27017 5900:6400 3260 9696 6080 80; do
+        echo "iptables -I INPUT 1 -p tcp --dport $n -j ACCEPT" >> /etc/rc.local
+    done
+    chmod +x /etc/rc.local
+    echo "exit 0" >> /etc/rc.local
+}
+
+function install_package() {
+    [[ ! -d $DEST ]] && mkdir -p $DEST
+    [[ ! -d $DEST/$1 ]] && cp -rf $TOPDIR/openstacksource/$1 $DEST/
+    olddir=`pwd`
+    cd $DEST/$1/$2
+    pip install -r $3 -i http://$PIP_HOST/pip
+    cd $olddir
+}
+
+function install_keystone() {
+    install_package keystone ./tools/ pip-requires
+    source_install keystone
+    pip install python-keystoneclient -i http://$PIP_HOST/pip
+}
+
+function install_glance() {
+    install_package glance ./tools/ pip-requires
+    source_install glance
+    pip install python-glanceclient -i http://$PIP_HOST/pip
+}
+
+function install_swift() {
+    install_package swift ./tools/ pip-requires
+    source_install swift
+    pip install python-swiftclient -i http://$PIP_HOST/pip
+}
+
+function install_swift3() {
+    [[ ! -d $DEST ]] && mkdir -p $DEST
+    [[ ! -d $DEST/swift3 ]] && cp -rf $TOPDIR/openstacksource/swift3 $DEST/
+    source_install swift3
+}
+
+function install_cinder() {
+    install_package cinder ./tools/ pip-requires
+    source_install cinder
+    pip install python-cinderclient -i http://$PIP_HOST/pip
+}
+
+function install_quantum() {
+    install_package quantum ./tools/ pip-requires
+    source_install quantum
+    pip install python-quantumclient -i http://$PIP_HOST/pip 
+}
+
+function install_nova() {
+    [[ ! -d $DEST/noVNC ]] && cp -rf $TOPDIR/openstacksource/noVNC $DEST/
+    install_package nova ./tools/ pip-requires
+    source_install nova
+    pip install python-novaclient -i http://$PIP_HOST/pip
+}
+
+function install_dashboard() {
+    install_package horizon ./tools/ pip-requires
+    source_install horizon
+}
+
+function install_ceilometer() {
+    install_package ceilometer ./ requirements.txt
+    sed -i "/hooks/d" $DEST/ceilometer/setup.cfg
+    sed -i "/global/d" $DEST/ceilometer/setup.cfg
+    source_install ceilometer 
+    pip install python-ceilometerclient -i http://$PIP_HOST/pip   
+}
+
+function nic_ip() {
+    info=`ifconfig $1 | grep "inet addr" | awk '{print $2}'`
+    echo ${info##*:}
+}

@@ -1,0 +1,142 @@
+#!/usr/bin/env python
+# Copyright (c) 2010-2012 OpenStack, LLC.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import optparse
+import sys
+import urllib
+
+from swift.common.ring import Ring
+from swift.common.utils import hash_path
+
+
+parser = optparse.OptionParser()
+parser.add_option('-a', '--all', action='store_true',
+                  help='Show all handoff nodes')
+parser.add_option('-p', '--partition', metavar='PARTITION',
+                  help='Show nodes for a given partition')
+(options, args) = parser.parse_args()
+
+if (len(args) < 2 or len(args) > 4) and \
+   (options.partition is None or not args):
+    print 'Usage: %s [-a] <ring.gz> <account> [<container>] [<object>]' \
+        % sys.argv[0]
+    print '   Or: %s [-a] <ring.gz> -p partition' % sys.argv[0]
+    print '   Note: account, container, object can also be a single arg ' \
+        'separated by /'
+    print 'Shows the nodes responsible for the item specified.'
+    print 'Example:'
+    print '    $ %s /etc/swift/account.ring.gz MyAccount' % sys.argv[0]
+    print '    Partition 5743883'
+    print '    Hash 96ae332a60b58910784e4417a03e1ad0'
+    print '    10.1.1.7:8000 sdd1'
+    print '    10.1.9.2:8000 sdb1'
+    print '    10.1.5.5:8000 sdf1'
+    print '    10.1.5.9:8000 sdt1 # [Handoff]'
+    sys.exit(1)
+
+if len(args) == 2 and '/' in args[1]:
+    # Parse single path arg, as noted in above help text.
+    path = args[1].lstrip('/')
+    args = [args[0]] + [p for p in path.split('/', 2) if p]
+
+ringloc = None
+account = None
+container = None
+obj = None
+
+if len(args) == 4:
+    # Account, Container and Object
+    ring_file, account, container, obj = args
+    ring = Ring(ring_file)
+    hash_str = hash_path(account, container, obj)
+    part, nodes = ring.get_nodes(account, container, obj)
+    target = "%s/%s/%s" % (account, container, obj)
+    loc = 'objects'
+elif len(args) == 3:
+    # Account, Container
+    ring_file, account, container = args
+    ring = Ring(ring_file)
+    hash_str = hash_path(account, container)
+    part, nodes = ring.get_nodes(account, container)
+    target = "%s/%s" % (account, container)
+    loc = 'containers'
+elif len(args) == 2:
+    # Account
+    ring_file, account = args
+    ring = Ring(ring_file)
+    hash_str = hash_path(account)
+    part, nodes = ring.get_nodes(account)
+    target = "%s" % (account)
+    loc = 'accounts'
+elif len(args) == 1:
+    # Partition
+    ring_file = args[0]
+    ring = Ring(ring_file)
+    hash_str = None
+    part = int(options.partition)
+    nodes = ring.get_part_nodes(part)
+    target = ''
+    loc = ring_file.rsplit('/', 1)[-1].split('.', 1)[0]
+    if loc in ('account', 'container', 'object'):
+        loc += 's'
+    else:
+        loc = '<type>'
+
+more_nodes = []
+for more_node in ring.get_more_nodes(part):
+    more_nodes.append(more_node)
+    if not options.all and len(more_nodes) >= len(nodes):
+        break
+
+print '\nAccount \t%s' % account
+print 'Container\t%s' % container
+print 'Object   \t%s\n' % obj
+print '\nPartition\t%s' % part
+print 'Hash       \t%s\n' % hash_str
+
+for node in nodes:
+    print 'Server:Port Device\t%s:%s %s' % (node['ip'], node['port'],
+                                            node['device'])
+for mnode in more_nodes:
+    print 'Server:Port Device\t%s:%s %s\t [Handoff]' \
+        % (mnode['ip'], mnode['port'], mnode['device'])
+print "\n"
+for node in nodes:
+    print 'curl -I -XHEAD "http://%s:%s/%s/%s/%s"' \
+        % (node['ip'], node['port'], node['device'], part,
+           urllib.quote(target))
+for mnode in more_nodes:
+    print 'curl -I -XHEAD "http://%s:%s/%s/%s/%s" # [Handoff]' \
+        % (mnode['ip'], mnode['port'], mnode['device'], part,
+           urllib.quote(target))
+print "\n"
+print 'Use your own device location of servers:'
+print 'such as "export DEVICE=/srv/node"'
+for node in nodes:
+    if hash_str:
+        print 'ssh %s "ls -lah ${DEVICE:-/srv/node}/%s/%s/%s/%s/%s/"' % (
+            node['ip'], node['device'], loc, part, hash_str[-3:], hash_str)
+    else:
+        print 'ssh %s "ls -lah ${DEVICE:-/srv/node}/%s/%s/%s/"' % (
+            node['ip'], node['device'], loc, part)
+for mnode in more_nodes:
+    if hash_str:
+        print 'ssh %s "ls -lah ${DEVICE:-/srv/node}/%s/%s/%s/%s/%s/" '\
+              '# [Handoff]' % (mnode['ip'], mnode['device'], loc, part,
+                               hash_str[-3:], hash_str)
+    else:
+        print 'ssh %s "ls -lah ${DEVICE:-/srv/node}/%s/%s/%s/" # [Handoff]' % (
+            mnode['ip'], mnode['device'], loc, part)

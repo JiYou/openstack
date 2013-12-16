@@ -1,0 +1,10 @@
+# Format is:
+# <preferred e-mail> <other e-mail 1>
+# <preferred e-mail> <other e-mail 2>
+<ghe@debian.org> <ghe.rivero@stackops.com>
+<jake@ansolabs.com> <admin@jakedahn.com>
+<launchpad@markgius.com> <mgius7096@gmail.com>
+<yorik.sar@gmail.com> <yorik@ytaraday>
+<jeblair@hp.com> <james.blair@rackspace.com>
+<ke.wu@ibeca.me> <ke.wu@nebula.com>
+Zhongyue Luo <zhongyue.nah@intel.com> <lzyeval@gmail.com>

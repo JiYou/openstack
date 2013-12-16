@@ -1,0 +1,45 @@
+
+#---------------------------------------------
+# Python pip Sources
+#---------------------------------------------
+
+PIP_HOST=192.168.111.11
+
+#---------------------------------------------
+# MySQL Service
+#---------------------------------------------
+
+MYSQL_ROOT_PASSWORD=mysqlpassword
+MYSQL_HOST=192.168.111.11
+
+#---------------------------------------------
+# RabbitMQ Service
+#---------------------------------------------
+
+RABBITMQ_HOST=192.168.111.11
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=rabbit_password
+
+#---------------------------------------------
+# Keystone
+#---------------------------------------------
+
+MYSQL_KEYSTONE_USER=keystone
+MYSQL_KEYSTONE_PASSWORD=keystone_password
+KEYSTONE_HOST=192.168.111.11
+ADMIN_PASSWORD=admin_user_password
+ADMIN_TOKEN=admin_token
+SERVICE_TOKEN=$ADMIN_TOKEN
+ADMIN_USER=admin
+SERVICE_TENANT_NAME=service
+
+#---------------------------------------------
+# MONITOR Service
+#---------------------------------------------
+
+MONITOR_HOST=192.168.111.11
+MONITOR_PORT=8778
+MYSQL_MONITOR_USER=monitor
+MYSQL_MONITOR_PASSWORD=monitor_password
+KEYSTONE_MONITOR_SERVICE_PASSWORD=keystone_monitor_password
+

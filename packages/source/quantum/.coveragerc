@@ -1,0 +1,7 @@
+[run]
+branch = True
+source = quantum
+omit = quantum/tests/*,quantum/plugins/cisco/tests/*,quantum/openstack/*
+
+[report]
+ignore-errors = True

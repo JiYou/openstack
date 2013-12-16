@@ -1,4 +1,7 @@
-openstack
+OpenStack
 =========
 
-《开源云OpenStack从入门到精通》
+OpenStack source code analysis.
+
+NOTE (Important): After downloading, run script "create_link.sh"
+

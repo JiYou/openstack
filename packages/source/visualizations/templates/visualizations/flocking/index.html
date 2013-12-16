@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Flocking" %}{% endblock %}
+
+{% block css %}
+  {{ block.super }}
+  <link href='{{ STATIC_URL }}viz/css/voroboids.css' media='screen' rel='stylesheet' />
+{% endblock %}
+
+{% block page_header %}
+  {% include "horizon/common/_page_header.html" with title=_("Flocking") %}
+{% endblock page_header %}
+
+{% block main %}
+<div class="row-fluid">
+  <div class="span12">
+  {{ tab_group.render }}
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+  {{ block.super }}
+  {% comment %}Visualization Libraries{% endcomment %}
+  <script src='{{ STATIC_URL }}viz/js/d3.v2.js' type='text/javascript' charset='utf-8'></script>
+  <script src='{{ STATIC_URL }}viz/js/boid.js' type='text/javascript' charset='utf-8'></script>
+  <script src='{{ STATIC_URL }}viz/js/voroboids.js' type='text/javascript' charset='utf-8'></script>
+{% endblock %}

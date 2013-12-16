@@ -1,0 +1,35 @@
+{% load branding horizon i18n %}
+
+<div class='sidebar'>
+  <h1 class="brand clearfix"><a href="{% url horizon:user_home %}">{% site_branding %}</a></h1>
+
+  {% horizon_main_nav %}
+
+  {% if request.horizon.dashboard.supports_tenants %}
+  <div id="tenant_switcher" class="dropdown switcher_bar" tabindex="1">
+    {% with num_of_tenants=authorized_tenants|length %}
+      {% if num_of_tenants > 1 %}
+        <a class="dropdown-toggle" data-toggle="dropdown" href="#tenant_switcher">
+      {% endif %}
+        <h4>{% trans "Current Project" %}</h4>
+        <h3>{{ request.user.tenant_name }}</h3>
+      {% if num_of_tenants > 1 %}
+      </a>
+      {% endif %}
+
+      {% if num_of_tenants > 1 %}
+        <ul id="tenant_list" class="dropdown-menu">
+          <li class='divider'></li>
+          {% for tenant in authorized_tenants %}
+            {% if tenant.enabled and tenant.id != request.user.tenant_id %}
+              <li><a href="{% url switch_tenants tenant.id %}?next={{ request.horizon.dashboard.get_absolute_url }}">{{ tenant.name }}</a></li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+  </div>
+  {% endif %}
+
+  {% horizon_dashboard_nav %}
+</div>

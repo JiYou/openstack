@@ -1,0 +1,4 @@
+export OS_TENANT_NAME=service
+export OS_USERNAME=swift
+export OS_PASSWORD=%KEYSTONE_SWIFT_SERVICE_PASSWORD%
+export OS_AUTH_URL="http://%KEYSTONE_HOST%:5000/v2.0/"

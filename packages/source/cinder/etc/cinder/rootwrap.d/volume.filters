@@ -1,0 +1,60 @@
+# cinder-rootwrap command filters for volume nodes
+# This file should be owned by (and only-writeable by) the root user
+
+[Filters]
+# cinder/volume/iscsi.py: iscsi_helper '--op' ...
+ietadm: CommandFilter, /usr/sbin/ietadm, root
+tgtadm: CommandFilter, /usr/sbin/tgtadm, root
+tgt-admin: CommandFilter, /usr/sbin/tgt-admin, root
+cinder-rtstool: CommandFilter, cinder-rtstool, root
+
+# cinder/volume/driver.py: 'vgs', '--noheadings', '-o', 'name'
+vgs: CommandFilter, /sbin/vgs, root
+
+# cinder/volume/driver.py: 'lvcreate', '-L', sizestr, '-n', volume_name,..
+# cinder/volume/driver.py: 'lvcreate', '-L', ...
+lvcreate: CommandFilter, /sbin/lvcreate, root
+
+# cinder/volume/driver.py: 'dd', 'if=%s' % srcstr, 'of=%s' % deststr,...
+dd: CommandFilter, /bin/dd, root
+
+# cinder/volume/driver.py: 'lvremove', '-f', %s/%s % ...
+lvremove: CommandFilter, /sbin/lvremove, root
+
+# cinder/volume/driver.py: 'lvdisplay', '--noheading', '-C', '-o', 'Attr',..
+lvdisplay: CommandFilter, /sbin/lvdisplay, root
+
+# cinder/volume/driver.py: 'iscsiadm', '-m', 'discovery', '-t',...
+# cinder/volume/driver.py: 'iscsiadm', '-m', 'node', '-T', ...
+iscsiadm: CommandFilter, /sbin/iscsiadm, root
+iscsiadm_usr: CommandFilter, /usr/bin/iscsiadm, root
+
+# cinder/volume/drivers/lvm.py: 'shred', '-n3'
+# cinder/volume/drivers/lvm.py: 'shred', '-n0', '-z', '-s%dMiB'
+shred: CommandFilter, /usr/bin/shred, root
+
+#cinder/volume/.py: utils.temporary_chown(path, 0), ...
+chown: CommandFilter, /bin/chown, root
+
+# cinder/volume/driver.py
+dmsetup: CommandFilter, /sbin/dmsetup, root
+dmsetup_usr: CommandFilter, /usr/sbin/dmsetup, root
+ln: CommandFilter, /bin/ln, root
+qemu-img: CommandFilter, /usr/bin/qemu-img, root
+env: CommandFilter, /usr/bin/env, root
+
+# cinder/volume/driver.py: utils.read_file_as_root()
+cat: CommandFilter, /bin/cat, root
+
+# cinder/volume/nfs.py
+stat: CommandFilter, /usr/bin/stat, root
+mount: CommandFilter, /bin/mount, root
+df: CommandFilter, /bin/df, root
+truncate: CommandFilter, /usr/bin/truncate, root
+chmod: CommandFilter, /bin/chmod, root
+rm: CommandFilter, /bin/rm, root
+lvs: CommandFilter, /sbin/lvs, root
+
+# cinder/volume/scality.py
+mount: CommandFilter, /bin/mount, root
+dd: CommandFilter, /bin/dd, root

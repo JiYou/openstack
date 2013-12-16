@@ -1,0 +1,9 @@
+#!/bin/bash
+set -o xtrace
+
+out=`ps aux | grep "$@" | grep -v "$@.sh" | grep -v "nkill" | grep -v instan | grep -v ssh | grep -v grep | wc -l`
+if [[ $out -gt 0 ]]; then
+     ps aux | grep "$@" | grep -v "$@.sh" | grep -v "nkill" | grep -v instan | grep -v ssh | grep -v grep | awk '{print $2}' | xargs -i kill -9 {}
+fi
+
+set +o xtrace

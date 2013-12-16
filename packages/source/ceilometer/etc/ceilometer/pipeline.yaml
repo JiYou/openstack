@@ -1,0 +1,9 @@
+---
+-
+    name: meter_pipeline
+    interval: 600
+    counters:
+        - "*"
+    transformers:
+    publishers:
+        - rpc://

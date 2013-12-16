@@ -1,0 +1,240 @@
+#!/usr/bin/env python
+
+# Copyright (c) 2012 OpenStack Foundation
+# Copyright (c) 2010 Citrix Systems, Inc.
+# Copyright 2010 United States Government as represented by the
+# Administrator of the National Aeronautics and Space Administration.
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+"""Handle the uploading and downloading of images via Glance."""
+
+import httplib
+import md5
+import urllib2
+
+import utils
+
+#FIXME(sirp): should this use pluginlib from 5.6?
+from pluginlib_nova import *
+configure_logging('glance')
+
+
+class RetryableError(Exception):
+    pass
+
+
+def _download_tarball_and_verify(request, staging_path):
+    try:
+        response = urllib2.urlopen(request)
+    except urllib2.HTTPError, error:
+        raise RetryableError(error)
+    except urllib2.URLError, error:
+        raise RetryableError(error)
+    except httplib.HTTPException, error:
+        # httplib.HTTPException and derivatives (BadStatusLine in particular)
+        # don't have a useful __repr__ or __str__
+        raise RetryableError('%s: %s' % (error.__class__.__name__, error))
+
+    url = request.get_full_url()
+    logging.info("Reading image data from %s" % url)
+
+    callback_data = {'bytes_read': 0}
+    checksum = md5.new()
+
+    def update_md5(chunk):
+        callback_data['bytes_read'] += len(chunk)
+        checksum.update(chunk)
+
+    try:
+        try:
+            utils.extract_tarball(response, staging_path, callback=update_md5)
+        except Exception, error:
+            raise RetryableError(error)
+    finally:
+        bytes_read = callback_data['bytes_read']
+        logging.info("Read %d bytes from %s", bytes_read, url)
+
+    # Use ETag if available, otherwise X-Image-Meta-Checksum
+    etag = response.info().getheader('etag', None)
+    if etag is None:
+        etag = response.info().getheader('x-image-meta-checksum', None)
+
+    # Verify checksum using ETag
+    checksum = checksum.hexdigest()
+
+    if etag is None:
+        msg = "No ETag found for comparison to checksum %(checksum)s"
+        logging.info(msg % locals())
+    elif checksum != etag:
+        msg = 'ETag %(etag)s does not match computed md5sum %(checksum)s'
+        raise RetryableError(msg % locals())
+    else:
+        msg = "Verified image checksum %(checksum)s"
+        logging.info(msg % locals())
+
+
+def _download_tarball(sr_path, staging_path, image_id, glance_host,
+                      glance_port, glance_use_ssl, auth_token):
+    """Download the tarball image from Glance and extract it into the staging
+    area. Retry if there is any failure.
+    """
+    # Build request headers
+    headers = {}
+    if auth_token:
+        headers['x-auth-token'] = auth_token
+
+    if glance_use_ssl:
+        scheme = 'https'
+    else:
+        scheme = 'http'
+
+    url = ("%(scheme)s://%(glance_host)s:%(glance_port)d/v1/images/"
+           "%(image_id)s" % locals())
+    logging.info("Downloading %s" % url)
+
+    request = urllib2.Request(url, headers=headers)
+    try:
+        _download_tarball_and_verify(request, staging_path)
+    except Exception:
+        logging.exception('Failed to retrieve %(url)s' % locals())
+        raise
+
+
+def _upload_tarball(staging_path, image_id, glance_host, glance_port,
+                    glance_use_ssl, auth_token, properties):
+    """
+    Create a tarball of the image and then stream that into Glance
+    using chunked-transfer-encoded HTTP.
+    """
+    if glance_use_ssl:
+        scheme = 'https'
+    else:
+        scheme = 'http'
+
+    url = '%s://%s:%s/v1/images/%s' % (scheme, glance_host, glance_port,
+                                       image_id)
+    logging.info("Writing image data to %s" % url)
+
+    try:
+        if glance_use_ssl:
+            conn = httplib.HTTPSConnection(glance_host, glance_port)
+        else:
+            conn = httplib.HTTPConnection(glance_host, glance_port)
+
+        # NOTE(sirp): httplib under python2.4 won't accept a file-like object
+        # to request
+        conn.putrequest('PUT', '/v1/images/%s' % image_id)
+    except Exception, error:
+        raise RetryableError(error)
+
+    # NOTE(sirp): There is some confusion around OVF. Here's a summary of
+    # where we currently stand:
+    #   1. OVF as a container format is misnamed. We really should be using
+    #      OVA since that is the name for the container format; OVF is the
+    #      standard applied to the manifest file contained within.
+    #   2. We're currently uploading a vanilla tarball. In order to be OVF/OVA
+    #      compliant, we'll need to embed a minimal OVF manifest as the first
+    #      file.
+
+    # NOTE(dprince): In order to preserve existing Glance properties
+    # we set X-Glance-Registry-Purge-Props on this request.
+    headers = {
+        'content-type': 'application/octet-stream',
+        'transfer-encoding': 'chunked',
+        'x-image-meta-is-public': 'False',
+        'x-image-meta-status': 'queued',
+        'x-image-meta-disk-format': 'vhd',
+        'x-image-meta-container-format': 'ovf',
+        'x-glance-registry-purge-props': 'False'}
+
+    # If we have an auth_token, set an x-auth-token header
+    if auth_token:
+        headers['x-auth-token'] = auth_token
+
+    for key, value in properties.iteritems():
+        header_key = "x-image-meta-property-%s" % key.replace('_', '-')
+        headers[header_key] = str(value)
+
+    for header, value in headers.iteritems():
+        conn.putheader(header, value)
+    conn.endheaders()
+
+    callback_data = {'bytes_written': 0}
+
+    def send_chunked_transfer_encoded(chunk):
+        chunk_len = len(chunk)
+        callback_data['bytes_written'] += chunk_len
+        try:
+            conn.send("%x\r\n%s\r\n" % (chunk_len, chunk))
+        except Exception, error:
+            raise RetryableError(error)
+
+    utils.create_tarball(
+            None, staging_path, callback=send_chunked_transfer_encoded)
+
+    try:
+        conn.send("0\r\n\r\n")  # Chunked-Transfer terminator
+    except Exception, error:
+        raise RetryableError(error)
+
+    bytes_written = callback_data['bytes_written']
+    logging.info("Wrote %d bytes to %s" % (bytes_written, url))
+
+    resp = conn.getresponse()
+    if resp.status != httplib.OK:
+        logging.error("Unexpected response while writing image data to %s: "
+                      "Response Status: %i, Response body: %s"
+                      % (url, resp.status, resp.read()))
+        raise RetryableError("Unexpected response [%i] while uploading "
+                        "image [%s] "
+                        "to glance host [%s:%s]"
+                        % (resp.status, image_id, glance_host, glance_port))
+
+    conn.close()
+
+
+def download_vhd(session, image_id, glance_host, glance_port, glance_use_ssl,
+                 uuid_stack, sr_path, auth_token):
+    """Download an image from Glance, unbundle it, and then deposit the VHDs
+    into the storage repository
+    """
+    staging_path = utils.make_staging_area(sr_path)
+    try:
+        # Download tarball into staging area and extract it
+        _download_tarball(
+            sr_path, staging_path, image_id, glance_host, glance_port,
+            glance_use_ssl, auth_token)
+
+        # Move the VHDs from the staging area into the storage repository
+        return utils.import_vhds(sr_path, staging_path, uuid_stack)
+    finally:
+        utils.cleanup_staging_area(staging_path)
+
+
+def upload_vhd(session, vdi_uuids, image_id, glance_host, glance_port,
+               glance_use_ssl, sr_path, auth_token, properties):
+    """Bundle the VHDs comprising an image and then stream them into Glance.
+    """
+    staging_path = utils.make_staging_area(sr_path)
+    try:
+        utils.prepare_staging_area(sr_path, staging_path, vdi_uuids)
+        _upload_tarball(staging_path, image_id, glance_host, glance_port,
+                        glance_use_ssl, auth_token, properties)
+    finally:
+        utils.cleanup_staging_area(staging_path)
+
+
+if __name__ == '__main__':
+    utils.register_plugin_calls(download_vhd, upload_vhd)

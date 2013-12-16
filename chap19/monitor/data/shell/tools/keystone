@@ -1,0 +1,106 @@
+#!/bin/bash
+
+set -e
+
+#---------------------------------------------------
+# Set up ENV
+#---------------------------------------------------
+
+export OS_USERNAME=""
+export OS_AUTH_KEY=""
+export OS_AUTH_TENANT=""
+export OS_STRATEGY=""
+export OS_AUTH_STRATEGY=""
+export OS_AUTH_URL=""
+
+export ADMIN_USER=%ADMIN_USER%
+export SERVICE_TOKEN=%ADMIN_TOKEN%
+export ADMIN_PASSWORD=%ADMIN_PASSWORD%
+export KEYSTONE_HOST=%KEYSTONE_HOST%
+export SERVICE_ENDPOINT=%SERVICE_ENDPOINT%
+logfile=%logfile%
+KEYSTONE_DIR=%KEYSTONE_DIR%
+
+#---------------------------------------------------
+# Check keystone is running?
+#---------------------------------------------------
+
+is_running=`ps aux | grep keystone-all | grep -v grep | wc -l`
+
+
+#---------------------------------------------------
+# Test function for Keystone
+#---------------------------------------------------
+
+
+
+function test_keystone() {
+    # Need to unset these proxy variables.
+    export http_proxy=""
+    export https_proxy=""
+    export ftp_proxy=""
+curl -d "{\"auth\": {\"tenantName\": \"$ADMIN_USER\", \"passwordCredentials\":{\"username\": \"$ADMIN_USER\", \"password\": \"$ADMIN_PASSWORD\"}}}" -H "Content-type: application/json" $SERVICE_ENDPOINT/tokens | python -mjson.tool
+
+TOKEN=`curl -s -d  "{\"auth\":{\"passwordCredentials\": {\"username\": \"$ADMIN_USER\", \"password\": \"$ADMIN_PASSWORD\"}, \"tenantName\": \"admin\"}}" -H "Content-type: application/json" $SERVICE_ENDPOINT/tokens | python -c "import sys; import json; tok = json.loads(sys.stdin.read()); print tok['access']['token']['id'];"`
+echo $TOKEN
+}
+
+
+case "$1" in
+    status)
+        if [[ $is_running -gt 0 ]]; then
+            echo "keystone is running"
+            tail -5 $logfile
+        else
+            echo "keystone is not running"
+            cat $logfile | grep -i "error" | tail -5
+        fi
+        ;;
+    start)
+        if [[ $is_running -gt 0 ]]; then
+            echo "keystone is running"
+        else
+            cd $KEYSTONE_DIR
+            nohup python ./bin/keystone-all \
+              --config-file /etc/keystone/keystone.conf \
+              --log-config /etc/keystone/logging.conf \
+              -d --debug >$logfile 2>&1 &
+            echo "keystone begin to start, please wait."
+            sleep 5
+            cat $logfile | tail -5
+        fi
+        ;;
+    stop)
+        if [[ $is_running -gt 0 ]]; then
+            echo "begin to stop keystone"
+            nkill keystone-all >/dev/null 2>&1 &
+        else
+            echo "keystone is stopped"
+        fi
+        ;;
+    restart)
+        if [[ $is_running -gt 0 ]]; then
+            nkill keystone-all > /dev/null
+        fi
+        cd $KEYSTONE_DIR
+        nohup python ./bin/keystone-all \
+          --config-file /etc/keystone/keystone.conf \
+          --log-config /etc/keystone/logging.conf \
+          -d --debug >$logfile 2>&1 &
+        echo "keystone begin to start, please wait."
+        sleep 5
+        cat $logfile | tail -5
+ 
+        ;;
+    test)
+        if [[ $is_running -gt 0 ]]; then
+            test_keystone           
+        else
+            echo "keystone is not running"
+            exit 0
+        fi
+        ;;
+    *)
+        echo "Usage: /etc/init.d/ssh {start|stop|restart|status}"
+        exit 0;;
+esac

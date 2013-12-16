@@ -1,0 +1,168 @@
+Metadata-Version: 1.1
+Name: python-monitorclient
+Version: 1.0.4
+Summary: Client library for OpenStack Monitor API.
+Home-page: https://github.com/openstack/python-monitorclient
+Author: OpenStack Contributors
+Author-email: openstack-dev@lists.openstack.org
+License: Apache License, Version 2.0
+Description: Python bindings to the OpenStack Vsm API
+        ===========================================
+        
+        This is a client for the OpenStack Vsm API. There's a Python API (the
+        ``monitorclient`` module), and a command-line script (``monitor``). Each
+        implements 100% of the OpenStack Vsm API.
+        
+        See the `OpenStack CLI guide`_ for information on how to use the ``monitor``
+        command-line tool. You may also want to look at the
+        `OpenStack API documentation`_.
+        
+        .. _OpenStack CLI Guide: http://docs.openstack.org/cli/quick-start/content/
+        .. _OpenStack API documentation: http://docs.openstack.org/api/
+        
+        The project is hosted on `Launchpad`_, where bugs can be filed. The code is
+        hosted on `Github`_. Patches must be submitted using `Gerrit`_, *not* Github
+        pull requests.
+        
+        .. _Github: https://github.com/openstack/python-monitorclient
+        .. _Launchpad: https://launchpad.net/python-monitorclient
+        .. _Gerrit: http://wiki.openstack.org/GerritWorkflow
+        
+        This code a fork of `Jacobian's python-cloudservers`__ If you need API support
+        for the Rackspace API solely or the BSD license, you should use that repository.
+        python-monitorclient is licensed under the Apache License like the rest of OpenStack.
+        
+        __ http://github.com/jacobian/python-cloudservers
+        
+        .. contents:: Contents:
+           :local:
+        
+        Command-line API
+        ----------------
+        
+        Installing this package gets you a shell command, ``monitor``, that you
+        can use to interact with any Rackspace compatible API (including OpenStack).
+        
+        You'll need to provide your OpenStack username and password. You can do this
+        with the ``--os-username``, ``--os-password`` and  ``--os-tenant-name``
+        params, but it's easier to just set them as environment variables::
+        
+            export OS_USERNAME=openstack
+            export OS_PASSWORD=yadayada
+            export OS_TENANT_NAME=myproject
+        
+        You will also need to define the authentication url with ``--os-auth-url``
+        and the version of the API with ``--version``.  Or set them as an environment
+        variables as well::
+        
+            export OS_AUTH_URL=http://example.com:8774/v1.1/
+            export OS_VOLUME_API_VERSION=1
+        
+        If you are using Keystone, you need to set the CINDER_URL to the keystone
+        endpoint::
+        
+            export OS_AUTH_URL=http://example.com:5000/v2.0/
+        
+        Since Keystone can return multiple regions in the Service Catalog, you
+        can specify the one you want with ``--os-region-name`` (or
+        ``export OS_REGION_NAME``). It defaults to the first in the list returned.
+        
+        You'll find complete documentation on the shell by running
+        ``monitor help``::
+        
+            usage: monitor [--debug] [--os-username <auth-user-name>]
+                          [--os-password <auth-password>]
+                          [--os-tenant-name <auth-tenant-name>] [--os-auth-url <auth-url>]
+                          [--os-region-name <region-name>] [--service-type <service-type>]
+                          [--service-name <service-name>]
+                          [--servicemanage-service-name <servicemanage-service-name>]
+                          [--endpoint-type <endpoint-type>]
+                          [--os-servicemanage-api-version <compute-api-ver>]
+                          [--os-cacert <ca-certificate>] [--retries <retries>]
+                          <subcommand> ...
+        
+            Command-line interface to the OpenStack Vsm API.
+        
+            Positional arguments:
+              <subcommand>
+                absolute-limits     Print a list of absolute limits for a user
+                create              Add a new servicemanage.
+                credentials         Show user credentials returned from auth
+                delete              Remove a servicemanage.
+                endpoints           Discover endpoints that get returned from the
+                                    authenticate services
+                extra-specs-list    Print a list of current 'servicemanage types and extra specs'
+                                    (Admin Only).
+                list                List all the servicemanages.
+                quota-class-show    List the quotas for a quota class.
+                quota-class-update  Update the quotas for a quota class.
+                quota-defaults      List the default quotas for a tenant.
+                quota-show          List the quotas for a tenant.
+                quota-update        Update the quotas for a tenant.
+                rate-limits         Print a list of rate limits for a user
+                rename              Rename a servicemanage.
+                show                Show details about a servicemanage.
+                snapshot-create     Add a new snapshot.
+                snapshot-delete     Remove a snapshot.
+                snapshot-list       List all the snapshots.
+                snapshot-rename     Rename a snapshot.
+                snapshot-show       Show details about a snapshot.
+                type-create         Create a new servicemanage type.
+                type-delete         Delete a specific servicemanage type
+                type-key            Set or unset extra_spec for a servicemanage type.
+                type-list           Print a list of available 'servicemanage types'.
+                bash-completion     Prints all of the commands and options to stdout so
+                                    that the
+                help                Display help about this program or one of its
+                                    subcommands.
+                list-extensions     List all the os-api extensions that are available.
+        
+            Optional arguments:
+              --debug               Print debugging output
+              --os-username <auth-user-name>
+                                    Defaults to env[OS_USERNAME].
+              --os-password <auth-password>
+                                    Defaults to env[OS_PASSWORD].
+              --os-tenant-name <auth-tenant-name>
+                                    Defaults to env[OS_TENANT_NAME].
+              --os-auth-url <auth-url>
+                                    Defaults to env[OS_AUTH_URL].
+              --os-region-name <region-name>
+                                    Defaults to env[OS_REGION_NAME].
+              --service-type <service-type>
+                                    Defaults to compute for most actions
+              --service-name <service-name>
+                                    Defaults to env[CINDER_SERVICE_NAME]
+              --servicemanage-service-name <servicemanage-service-name>
+                                    Defaults to env[CINDER_VOLUME_SERVICE_NAME]
+              --endpoint-type <endpoint-type>
+                                    Defaults to env[CINDER_ENDPOINT_TYPE] or publicURL.
+              --os-servicemanage-api-version <compute-api-ver>
+                                    Accepts 1,defaults to env[OS_VOLUME_API_VERSION].
+              --os-cacert <ca-certificate>
+                                    Specify a CA bundle file to use in verifying a TLS
+                                    (https) server certificate. Defaults to env[OS_CACERT]
+              --retries <retries>   Number of retries.
+        
+        Python API
+        ----------
+        
+        There's also a complete Python API, but it has not yet been documented.
+        
+        Quick-start using keystone::
+        
+            # use v2.0 auth with http://example.com:5000/v2.0/")
+            >>> from monitorclient.v1 import client
+            >>> nt = client.Client(USER, PASS, TENANT, AUTH_URL, service_type="servicemanage")
+            >>> nt.servicemanages.list()
+            [...]
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Environment :: OpenStack
+Classifier: Intended Audience :: Developers
+Classifier: Intended Audience :: Information Technology
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Horizon QUnit Test Suite</title>
+    <link rel="stylesheet" href="{{ STATIC_URL }}horizon/lib/qunit/qunit.css" type="text/css" media="screen">
+    <script type="text/javascript" src="{{ STATIC_URL }}horizon/lib/jquery/jquery.min.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}horizon/lib/qunit/qunit.js"></script>
+    {% include "horizon/_conf.html" %}
+
+    {% comment %}Load test modules here.{% endcomment %}
+    <script type="text/javascript" src="{{ STATIC_URL }}horizon/tests/messages.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}horizon/tests/modals.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}horizon/tests/templates.js"></script>
+    <script type="text/javascript" src="{{ STATIC_URL }}horizon/tests/tables.js"></script>
+    {% comment %}End test modules.{% endcomment %}
+
+    {% include "horizon/_scripts.html" %}
+  </head>
+  <body>
+    <h1 id="qunit-header">Horizon JavaScript Tests</h1>
+    <h2 id="qunit-banner"></h2>
+    <div id="qunit-testrunner-toolbar"></div>
+    <h2 id="qunit-userAgent"></h2>
+    <ol id="qunit-tests"></ol>
+    <div id="qunit-fixture">
+      <!-- Test markup; will be hidden. -->
+
+      <div id="main_content">
+        <div class="messages"></div>
+        <div id="modal_wrapper"></div>
+      </div>
+
+      <table id="table1" class="datatable">
+        <tbody>
+          <tr><td>cat1</td></tr>
+          <tr><td>dog1</td></tr>
+          <tr><td>cat2</td></tr>
+          <tr><td>dog2</td></tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="1">
+              <span class="table_count">Displaying 4 items</span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <table id="table2" class="datatable">
+        <thead><tr><th><div class="table_filter" data-toggle="buttons-radio">
+          <button name="cats" type="submit" value="cats" id="button_cats">Cats</button>
+          <button name="dogs" type="submit" value="dogs" id="button_dogs">Dogs</button>
+          <button name="big" type="submit" value="big" id="button_big">Big Animals</button>
+        </div></th></tr></thead>
+        <tbody>
+          <tr class="category-cat"><td>cat1</td></tr>
+          <tr class="category-big category-dog"><td>dog1</td></tr>
+          <tr class="category-big category-cat"><td>cat2</td></tr>
+          <tr class="category-dog"><td>dog2</td></tr>
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="1">
+              <span class="table_count">Displaying 4 items</span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+
+    </div>
+  </body>
+</html>

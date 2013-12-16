@@ -1,0 +1,75 @@
+#!/bin/bash
+
+set -e
+
+#---------------------------------------------------
+# Set up ENV
+#---------------------------------------------------
+
+mkdir -p /var/log/monitor/
+logfile=/var/log/monitor/monitor-conductor.log
+
+function kill_by_name() {
+out=`ps aux | grep "$1" | grep -v "$1.*.sh" | grep -v "kill_by_name" | grep -v instan | grep -v ssh | grep -v grep | grep -v rabbitmq | grep python | wc -l`
+if [[ $out -gt 0 ]]; then
+     ps aux | grep "$1" | grep -v "$1.*.sh" | grep -v "kill_by_name" | grep -v instan | grep -v ssh | grep -v grep | grep -v rabbitmq | grep python | awk '{print $2}' | xargs -i kill -9 {}
+fi
+}
+
+#---------------------------------------------------
+# Check monitor-conductor is running?
+#---------------------------------------------------
+
+is_running=`ps aux | grep monitor-conductor | grep -v grep | grep -v "vi monitor-conductor" | \
+    grep -v "vim monitor-conductor" | grep -v "monitor-conductor st" | wc -l`
+
+#---------------------------------------------------
+# Test function for monitor-conductor
+#---------------------------------------------------
+
+case "$1" in
+    status)
+        if [[ $is_running -gt 0 ]]; then
+            echo "monitor-conductor is running"
+            tail -5 $logfile
+        else
+            echo "monitor-conductor is not running"
+            cat $logfile | grep -i "error" | tail -5
+        fi
+        ;;
+    start)
+        if [[ $is_running -gt 0 ]]; then
+            echo "monitor-conductor is running"
+        else
+            nohup python /opt/stack/monitor/bin/monitor-conductor \
+              --config-file /etc/monitor/monitor.conf \
+              >$logfile 2>&1 &
+            echo "monitor-conductor begin to start, please wait."
+            sleep 5
+            cat $logfile | tail -5
+        fi
+        ;;
+    stop)
+        if [[ $is_running -gt 0 ]]; then
+            echo "begin to stop monitor-conductor"
+            kill_by_name monitor-conductor >/dev/null 2>&1 &
+        else
+            echo "monitor-conductor is stopped"
+        fi
+        ;;
+    restart)
+        if [[ $is_running -gt 0 ]]; then
+            kill_by_name monitor-conductor > /dev/null
+        fi
+        nohup python /opt/stack/monitor/bin/monitor-conductor \
+          --config-file /etc/monitor/monitor.conf \
+          >$logfile 2>&1 &
+        echo "monitor-conductor begin to start, please wait."
+        sleep 5
+        cat $logfile | tail -5
+ 
+        ;;
+    *)
+        echo "Usage: /etc/init.d/monitor-conductor {start|stop|restart|status}"
+        exit 0;;
+esac

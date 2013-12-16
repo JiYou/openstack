@@ -1,0 +1,60 @@
+# monitor-rootwrap command filters for servicemanage nodes
+# This file should be owned by (and only-writeable by) the root user
+
+[Filters]
+# monitor/servicemanage/iscsi.py: iscsi_helper '--op' ...
+ietadm: CommandFilter, /usr/sbin/ietadm, root
+tgtadm: CommandFilter, /usr/sbin/tgtadm, root
+tgt-admin: CommandFilter, /usr/sbin/tgt-admin, root
+monitor-rtstool: CommandFilter, monitor-rtstool, root
+
+# monitor/servicemanage/driver.py: 'vgs', '--noheadings', '-o', 'name'
+vgs: CommandFilter, /sbin/vgs, root
+
+# monitor/servicemanage/driver.py: 'lvcreate', '-L', sizestr, '-n', servicemanage_name,..
+# monitor/servicemanage/driver.py: 'lvcreate', '-L', ...
+lvcreate: CommandFilter, /sbin/lvcreate, root
+
+# monitor/servicemanage/driver.py: 'dd', 'if=%s' % srcstr, 'of=%s' % deststr,...
+dd: CommandFilter, /bin/dd, root
+
+# monitor/servicemanage/driver.py: 'lvremove', '-f', %s/%s % ...
+lvremove: CommandFilter, /sbin/lvremove, root
+
+# monitor/servicemanage/driver.py: 'lvdisplay', '--noheading', '-C', '-o', 'Attr',..
+lvdisplay: CommandFilter, /sbin/lvdisplay, root
+
+# monitor/servicemanage/driver.py: 'iscsiadm', '-m', 'discovery', '-t',...
+# monitor/servicemanage/driver.py: 'iscsiadm', '-m', 'node', '-T', ...
+iscsiadm: CommandFilter, /sbin/iscsiadm, root
+iscsiadm_usr: CommandFilter, /usr/bin/iscsiadm, root
+
+# monitor/servicemanage/drivers/lvm.py: 'shred', '-n3'
+# monitor/servicemanage/drivers/lvm.py: 'shred', '-n0', '-z', '-s%dMiB'
+shred: CommandFilter, /usr/bin/shred, root
+
+#monitor/servicemanage/.py: utils.temporary_chown(path, 0), ...
+chown: CommandFilter, /bin/chown, root
+
+# monitor/servicemanage/driver.py
+dmsetup: CommandFilter, /sbin/dmsetup, root
+dmsetup_usr: CommandFilter, /usr/sbin/dmsetup, root
+ln: CommandFilter, /bin/ln, root
+qemu-img: CommandFilter, /usr/bin/qemu-img, root
+env: CommandFilter, /usr/bin/env, root
+
+# monitor/servicemanage/driver.py: utils.read_file_as_root()
+cat: CommandFilter, /bin/cat, root
+
+# monitor/servicemanage/nfs.py
+stat: CommandFilter, /usr/bin/stat, root
+mount: CommandFilter, /bin/mount, root
+df: CommandFilter, /bin/df, root
+truncate: CommandFilter, /usr/bin/truncate, root
+chmod: CommandFilter, /bin/chmod, root
+rm: CommandFilter, /bin/rm, root
+lvs: CommandFilter, /sbin/lvs, root
+
+# monitor/servicemanage/scality.py
+mount: CommandFilter, /bin/mount, root
+dd: CommandFilter, /bin/dd, root

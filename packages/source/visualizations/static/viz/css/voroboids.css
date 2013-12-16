@@ -1,0 +1,21 @@
+svg {
+  display: block;
+  border: solid 1px #ccc;
+  overflow: hidden;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+path {
+  stroke: #000;
+  stroke-width: .5px;
+}
+
+circle {
+  stroke: #ddd;
+}
+
+circle:hover{
+  stroke: red;
+  stroke-width: 2px;
+}

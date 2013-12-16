@@ -1,0 +1,43 @@
+{% load i18n sizeformat %}
+
+<h3>{% trans "Port Overview" %}</h3>
+
+<div class="info row-fluid detail">
+  <h4>{% trans "Port" %}</h4>
+  <hr class="header_rule">
+  <dl>
+    <dt>{% trans "Name" %}</dt>
+    <dd>{{ port.name|default:"None" }}</dd>
+    <dt>{% trans "ID" %}</dt>
+    <dd>{{ port.id|default:"None" }}</dd>
+    {% url horizon:project:networks:detail port.network_id as network_url %}
+    <dt>{% trans "Network ID" %}</dt>
+    <dd><a href="{{ network_url }}">{{ port.network_id|default:"None" }}</a></dd>
+    <dt>{% trans "Project ID" %}</dt>
+    <dd>{{ port.tenant_id|default:"-" }}</dd>
+    <dt>{% trans "Fixed IP" %}</dt>
+    <dd>
+      {% if port.fixed_ips.items|length > 1 %}
+      {% for ip in port.fixed_ips %}
+      <b>{% trans "IP address:" %}</b> {{ ip.ip_address }},
+      <b>{% trans "Subnet ID" %}</b> {{ ip.subnet_id }}<br>
+      {% endfor %}
+      {% else %}
+      "None"
+      {% endif %}
+    </dd>
+    <dt>{% trans "Mac Address" %}</dt>
+    <dd>{{ port.mac_address|default:"None" }}</dd>
+    <dt>{% trans "Status" %}</dt>
+    <dd>{{ port.status|default:"None" }}</dd>
+    <dt>{% trans "Admin State" %}</dt>
+    <dd>{{ port.admin_state|default:"None" }}</dd>
+    <dt>{% trans "Attached Device" %}</dt>
+    {% if port.device_id|length > 1 or port.device_owner %}
+    <dd><b>{% trans "Device Owner" %}</b>: {{ port.device_owner|default:"None" }}</dd>
+    <dd><b>{% trans "Device ID" %}</b>: {{ port.device_id|default:"-" }}</dd>
+    {% else %}
+    <dd>No attached device</dd>
+    {% endif %}
+  </dl>
+</div>

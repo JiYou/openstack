@@ -1,0 +1,833 @@
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+# Copyright 2011 OpenStack Foundation
+# (c) Copyright 2013 Hewlett-Packard Development Company, L.P.
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+"""Volume drivers for libvirt."""
+
+import hashlib
+import os
+import time
+import urllib2
+import urlparse
+
+from oslo.config import cfg
+
+from nova import exception
+from nova.openstack.common import lockutils
+from nova.openstack.common import log as logging
+from nova import paths
+from nova.storage import linuxscsi
+from nova import utils
+from nova.virt.libvirt import config as vconfig
+from nova.virt.libvirt import utils as virtutils
+
+LOG = logging.getLogger(__name__)
+
+volume_opts = [
+    cfg.IntOpt('num_iscsi_scan_tries',
+               default=3,
+               help='number of times to rescan iSCSI target to find volume'),
+    cfg.StrOpt('rbd_user',
+               default=None,
+               help='the RADOS client name for accessing rbd volumes'),
+    cfg.StrOpt('rbd_secret_uuid',
+               default=None,
+               help='the libvirt uuid of the secret for the rbd_user'
+                    'volumes'),
+    cfg.StrOpt('nfs_mount_point_base',
+               default=paths.state_path_def('mnt'),
+               help='Dir where the nfs volume is mounted on the compute node'),
+    cfg.StrOpt('nfs_mount_options',
+               default=None,
+               help='Mount options passed to the nfs client. See section '
+                    'of the nfs man page for details'),
+    cfg.IntOpt('num_aoe_discover_tries',
+               default=3,
+               help='number of times to rediscover AoE target to find volume'),
+    cfg.StrOpt('glusterfs_mount_point_base',
+                default=paths.state_path_def('mnt'),
+                help='Dir where the glusterfs volume is mounted on the '
+                      'compute node'),
+    cfg.BoolOpt('libvirt_iscsi_use_multipath',
+                default=False,
+                help='use multipath connection of the iSCSI volume'),
+    cfg.StrOpt('scality_sofs_config',
+               default=None,
+               help='Path or URL to Scality SOFS configuration file'),
+    cfg.StrOpt('scality_sofs_mount_point',
+               default='$state_path/scality',
+               help='Base dir where Scality SOFS shall be mounted'),
+    ]
+
+CONF = cfg.CONF
+CONF.register_opts(volume_opts)
+
+
+class LibvirtBaseVolumeDriver(object):
+    """Base class for volume drivers."""
+    def __init__(self, connection, is_block_dev):
+        self.connection = connection
+        self.is_block_dev = is_block_dev
+
+    def connect_volume(self, connection_info, disk_info):
+        """Connect the volume. Returns xml for libvirt."""
+
+        conf = vconfig.LibvirtConfigGuestDisk()
+        conf.driver_name = virtutils.pick_disk_driver_name(self.is_block_dev)
+        conf.device_type = disk_info['type']
+        conf.driver_format = "raw"
+        conf.driver_cache = "none"
+        conf.target_dev = disk_info['dev']
+        conf.target_bus = disk_info['bus']
+        conf.serial = connection_info.get('serial')
+        return conf
+
+    def disconnect_volume(self, connection_info, disk_dev):
+        """Disconnect the volume."""
+        pass
+
+
+class LibvirtVolumeDriver(LibvirtBaseVolumeDriver):
+    """Class for volumes backed by local file."""
+    def __init__(self, connection):
+        super(LibvirtVolumeDriver,
+              self).__init__(connection, is_block_dev=True)
+
+    def connect_volume(self, connection_info, disk_info):
+        """Connect the volume to a local device."""
+        conf = super(LibvirtVolumeDriver,
+                     self).connect_volume(connection_info,
+                                          disk_info)
+        conf.source_type = "block"
+        conf.source_path = connection_info['data']['device_path']
+        return conf
+
+
+class LibvirtFakeVolumeDriver(LibvirtBaseVolumeDriver):
+    """Driver to attach fake volumes to libvirt."""
+    def __init__(self, connection):
+        super(LibvirtFakeVolumeDriver,
+              self).__init__(connection, is_block_dev=True)
+
+    def connect_volume(self, connection_info, disk_info):
+        """Connect the volume to a fake device."""
+        conf = super(LibvirtFakeVolumeDriver,
+                     self).connect_volume(connection_info,
+                                          disk_info)
+        conf.source_type = "network"
+        conf.source_protocol = "fake"
+        conf.source_host = "fake"
+        return conf
+
+
+class LibvirtNetVolumeDriver(LibvirtBaseVolumeDriver):
+    """Driver to attach Network volumes to libvirt."""
+    def __init__(self, connection):
+        super(LibvirtNetVolumeDriver,
+              self).__init__(connection, is_block_dev=False)
+
+    def connect_volume(self, connection_info, disk_info):
+        conf = super(LibvirtNetVolumeDriver,
+                     self).connect_volume(connection_info,
+                                          disk_info)
+        conf.source_type = "network"
+        conf.source_protocol = connection_info['driver_volume_type']
+        conf.source_host = connection_info['data']['name']
+        netdisk_properties = connection_info['data']
+        auth_enabled = netdisk_properties.get('auth_enabled')
+        if (conf.source_protocol == 'rbd' and
+            CONF.rbd_secret_uuid):
+            conf.auth_secret_uuid = CONF.rbd_secret_uuid
+            auth_enabled = True  # Force authentication locally
+            if CONF.rbd_user:
+                conf.auth_username = CONF.rbd_user
+        if auth_enabled:
+            conf.auth_username = (conf.auth_username or
+                                  netdisk_properties['auth_username'])
+            conf.auth_secret_type = netdisk_properties['secret_type']
+            conf.auth_secret_uuid = (conf.auth_secret_uuid or
+                                     netdisk_properties['secret_uuid'])
+        return conf
+
+
+class LibvirtISCSIVolumeDriver(LibvirtBaseVolumeDriver):
+    """Driver to attach Network volumes to libvirt."""
+    def __init__(self, connection):
+        super(LibvirtISCSIVolumeDriver,
+              self).__init__(connection, is_block_dev=False)
+
+    def _run_iscsiadm(self, iscsi_properties, iscsi_command, **kwargs):
+        check_exit_code = kwargs.pop('check_exit_code', 0)
+        (out, err) = utils.execute('iscsiadm', '-m', 'node', '-T',
+                                   iscsi_properties['target_iqn'],
+                                   '-p', iscsi_properties['target_portal'],
+                                   *iscsi_command, run_as_root=True,
+                                   check_exit_code=check_exit_code)
+        LOG.debug("iscsiadm %s: stdout=%s stderr=%s" %
+                  (iscsi_command, out, err))
+        return (out, err)
+
+    def _iscsiadm_update(self, iscsi_properties, property_key, property_value,
+                         **kwargs):
+        iscsi_command = ('--op', 'update', '-n', property_key,
+                         '-v', property_value)
+        return self._run_iscsiadm(iscsi_properties, iscsi_command, **kwargs)
+
+    def _get_target_portals_from_iscsiadm_output(self, output):
+        return [line.split()[0] for line in output.splitlines()]
+
+    @lockutils.synchronized('connect_volume', 'nova-')
+    def connect_volume(self, connection_info, disk_info):
+        """Attach the volume to instance_name."""
+        conf = super(LibvirtISCSIVolumeDriver,
+                     self).connect_volume(connection_info,
+                                          disk_info)
+
+        iscsi_properties = connection_info['data']
+
+        libvirt_iscsi_use_multipath = CONF.libvirt_iscsi_use_multipath
+
+        if libvirt_iscsi_use_multipath:
+            #multipath installed, discovering other targets if available
+            #multipath should be configured on the nova-compute node,
+            #in order to fit storage vendor
+            out = self._run_iscsiadm_bare(['-m',
+                                          'discovery',
+                                          '-t',
+                                          'sendtargets',
+                                          '-p',
+                                          iscsi_properties['target_portal']],
+                                          check_exit_code=[0, 255])[0] \
+                or ""
+
+            for ip in self._get_target_portals_from_iscsiadm_output(out):
+                props = iscsi_properties.copy()
+                props['target_portal'] = ip
+                self._connect_to_iscsi_portal(props)
+
+            self._rescan_iscsi()
+        else:
+            self._connect_to_iscsi_portal(iscsi_properties)
+
+        host_device = ("/dev/disk/by-path/ip-%s-iscsi-%s-lun-%s" %
+                       (iscsi_properties['target_portal'],
+                        iscsi_properties['target_iqn'],
+                        iscsi_properties.get('target_lun', 0)))
+
+        # The /dev/disk/by-path/... node is not always present immediately
+        # TODO(justinsb): This retry-with-delay is a pattern, move to utils?
+        tries = 0
+        disk_dev = disk_info['dev']
+        while not os.path.exists(host_device):
+            if tries >= CONF.num_iscsi_scan_tries:
+                raise exception.NovaException(_("iSCSI device not found at %s")
+                                              % (host_device))
+
+            LOG.warn(_("ISCSI volume not yet found at: %(disk_dev)s. "
+                       "Will rescan & retry.  Try number: %(tries)s") %
+                     locals())
+
+            # The rescan isn't documented as being necessary(?), but it helps
+            self._run_iscsiadm(iscsi_properties, ("--rescan",))
+
+            tries = tries + 1
+            if not os.path.exists(host_device):
+                time.sleep(tries ** 2)
+
+        if tries != 0:
+            LOG.debug(_("Found iSCSI node %(disk_dev)s "
+                        "(after %(tries)s rescans)") %
+                      locals())
+
+        if libvirt_iscsi_use_multipath:
+            #we use the multipath device instead of the single path device
+            self._rescan_multipath()
+            multipath_device = self._get_multipath_device_name(host_device)
+            if multipath_device is not None:
+                host_device = multipath_device
+
+        conf.source_type = "block"
+        conf.source_path = host_device
+        return conf
+
+    @lockutils.synchronized('connect_volume', 'nova-')
+    def disconnect_volume(self, connection_info, disk_dev):
+        """Detach the volume from instance_name."""
+        super(LibvirtISCSIVolumeDriver,
+              self).disconnect_volume(connection_info, disk_dev)
+        iscsi_properties = connection_info['data']
+
+        if CONF.libvirt_iscsi_use_multipath and \
+           "mapper" in connection_info['data']['device_path']:
+            self._rescan_iscsi()
+            self._rescan_multipath()
+            devices = [dev for dev in self.connection.get_all_block_devices()
+                       if "/mapper/" in dev]
+            if not devices:
+                #disconnect if no other multipath devices
+                self._disconnect_mpath(iscsi_properties)
+                return
+
+            other_iqns = [self._get_multipath_iqn(device)
+                          for device in devices]
+
+            if iscsi_properties['target_iqn'] not in other_iqns:
+                #disconnect if no other multipath devices with same iqn
+                self._disconnect_mpath(iscsi_properties)
+                return
+
+            #else do not disconnect iscsi portals,
+            #as they are used for other luns
+            return
+
+        # NOTE(vish): Only disconnect from the target if no luns from the
+        #             target are in use.
+        device_prefix = ("/dev/disk/by-path/ip-%s-iscsi-%s-lun-" %
+                         (iscsi_properties['target_portal'],
+                          iscsi_properties['target_iqn']))
+        devices = self.connection.get_all_block_devices()
+        devices = [dev for dev in devices if dev.startswith(device_prefix)]
+        if not devices:
+            self._disconnect_from_iscsi_portal(iscsi_properties)
+
+    def _connect_to_iscsi_portal(self, iscsi_properties):
+        # NOTE(vish): If we are on the same host as nova volume, the
+        #             discovery makes the target so we don't need to
+        #             run --op new. Therefore, we check to see if the
+        #             target exists, and if we get 255 (Not Found), then
+        #             we run --op new. This will also happen if another
+        #             volume is using the same target.
+        try:
+            self._run_iscsiadm(iscsi_properties, ())
+        except exception.ProcessExecutionError as exc:
+            # iscsiadm returns 21 for "No records found" after version 2.0-871
+            if exc.exit_code in [21, 255]:
+                self._run_iscsiadm(iscsi_properties, ('--op', 'new'))
+            else:
+                raise
+
+        if iscsi_properties.get('auth_method'):
+            self._iscsiadm_update(iscsi_properties,
+                                  "node.session.auth.authmethod",
+                                  iscsi_properties['auth_method'])
+            self._iscsiadm_update(iscsi_properties,
+                                  "node.session.auth.username",
+                                  iscsi_properties['auth_username'])
+            self._iscsiadm_update(iscsi_properties,
+                                  "node.session.auth.password",
+                                  iscsi_properties['auth_password'])
+
+        #duplicate logins crash iscsiadm after load,
+        #so we scan active sessions to see if the node is logged in.
+        out = self._run_iscsiadm_bare(["-m", "session"],
+                                      run_as_root=True,
+                                      check_exit_code=[0, 1, 21])[0] or ""
+
+        portals = [{'portal': p.split(" ")[2], 'iqn': p.split(" ")[3]}
+                   for p in out.splitlines() if p.startswith("tcp:")]
+
+        stripped_portal = iscsi_properties['target_portal'].split(",")[0]
+        if len(portals) == 0 or len([s for s in portals
+                                     if stripped_portal ==
+                                     s['portal'].split(",")[0]
+                                     and
+                                     s['iqn'] ==
+                                     iscsi_properties['target_iqn']]
+                                    ) == 0:
+            try:
+                self._run_iscsiadm(iscsi_properties,
+                                   ("--login",),
+                                   check_exit_code=[0, 255])
+            except exception.ProcessExecutionError as err:
+                #as this might be one of many paths,
+                #only set successfull logins to startup automatically
+                if err.exit_code in [15]:
+                    self._iscsiadm_update(iscsi_properties,
+                                          "node.startup",
+                                          "automatic")
+                    return
+
+            self._iscsiadm_update(iscsi_properties,
+                                  "node.startup",
+                                  "automatic")
+
+    def _disconnect_from_iscsi_portal(self, iscsi_properties):
+        self._iscsiadm_update(iscsi_properties, "node.startup", "manual",
+                              check_exit_code=[0, 21, 255])
+        self._run_iscsiadm(iscsi_properties, ("--logout",),
+                           check_exit_code=[0, 21, 255])
+        self._run_iscsiadm(iscsi_properties, ('--op', 'delete'),
+                           check_exit_code=[0, 21, 255])
+
+    def _get_multipath_device_name(self, single_path_device):
+        device = os.path.realpath(single_path_device)
+        out = self._run_multipath(['-ll',
+                                  device],
+                                  check_exit_code=[0, 1])[0]
+        mpath_line = [line for line in out.splitlines()
+                      if "scsi_id" not in line]  # ignore udev errors
+        if len(mpath_line) > 0 and len(mpath_line[0]) > 0:
+            return "/dev/mapper/%s" % mpath_line[0].split(" ")[0]
+
+        return None
+
+    def _get_iscsi_devices(self):
+        try:
+            devices = list(os.walk('/dev/disk/by-path'))[0][-1]
+        except IndexError:
+            return []
+        return [entry for entry in devices if entry.startswith("ip-")]
+
+    def _disconnect_mpath(self, iscsi_properties):
+        entries = self._get_iscsi_devices()
+        ips = [ip.split("-")[1] for ip in entries
+               if iscsi_properties['target_iqn'] in ip]
+        for ip in ips:
+            props = iscsi_properties.copy()
+            props['target_portal'] = ip
+            self._disconnect_from_iscsi_portal(props)
+
+        self._rescan_multipath()
+
+    def _get_multipath_iqn(self, multipath_device):
+        entries = self._get_iscsi_devices()
+        for entry in entries:
+            entry_real_path = os.path.realpath("/dev/disk/by-path/%s" % entry)
+            entry_multipath = self._get_multipath_device_name(entry_real_path)
+            if entry_multipath == multipath_device:
+                return entry.split("iscsi-")[1].split("-lun")[0]
+        return None
+
+    def _run_iscsiadm_bare(self, iscsi_command, **kwargs):
+        check_exit_code = kwargs.pop('check_exit_code', 0)
+        (out, err) = utils.execute('iscsiadm',
+                                   *iscsi_command,
+                                   run_as_root=True,
+                                   check_exit_code=check_exit_code)
+        LOG.debug("iscsiadm %s: stdout=%s stderr=%s" %
+                  (iscsi_command, out, err))
+        return (out, err)
+
+    def _run_multipath(self, multipath_command, **kwargs):
+        check_exit_code = kwargs.pop('check_exit_code', 0)
+        (out, err) = utils.execute('multipath',
+                                   *multipath_command,
+                                   run_as_root=True,
+                                   check_exit_code=check_exit_code)
+        LOG.debug("multipath %s: stdout=%s stderr=%s" %
+                  (multipath_command, out, err))
+        return (out, err)
+
+    def _rescan_iscsi(self):
+        self._run_iscsiadm_bare(('-m', 'node', '--rescan'),
+                                check_exit_code=[0, 1, 21, 255])
+        self._run_iscsiadm_bare(('-m', 'session', '--rescan'),
+                                check_exit_code=[0, 1, 21, 255])
+
+    def _rescan_multipath(self):
+        self._run_multipath('-r', check_exit_code=[0, 1, 21])
+
+
+class LibvirtNFSVolumeDriver(LibvirtBaseVolumeDriver):
+    """Class implements libvirt part of volume driver for NFS."""
+
+    def __init__(self, connection):
+        """Create back-end to nfs."""
+        super(LibvirtNFSVolumeDriver,
+              self).__init__(connection, is_block_dev=False)
+
+    def connect_volume(self, connection_info, disk_info):
+        """Connect the volume. Returns xml for libvirt."""
+        conf = super(LibvirtNFSVolumeDriver,
+                     self).connect_volume(connection_info,
+                                          disk_info)
+        path = self._ensure_mounted(connection_info['data']['export'])
+        path = os.path.join(path, connection_info['data']['name'])
+        conf.source_type = 'file'
+        conf.source_path = path
+        return conf
+
+    def _ensure_mounted(self, nfs_export):
+        """
+        @type nfs_export: string
+        """
+        mount_path = os.path.join(CONF.nfs_mount_point_base,
+                                  self.get_hash_str(nfs_export))
+        self._mount_nfs(mount_path, nfs_export, ensure=True)
+        return mount_path
+
+    def _mount_nfs(self, mount_path, nfs_share, ensure=False):
+        """Mount nfs export to mount path."""
+        if not self._path_exists(mount_path):
+            utils.execute('mkdir', '-p', mount_path)
+
+        # Construct the NFS mount command.
+        nfs_cmd = ['mount', '-t', 'nfs']
+        if CONF.nfs_mount_options is not None:
+            nfs_cmd.extend(['-o', CONF.nfs_mount_options])
+        nfs_cmd.extend([nfs_share, mount_path])
+
+        try:
+            utils.execute(*nfs_cmd, run_as_root=True)
+        except exception.ProcessExecutionError as exc:
+            if ensure and 'already mounted' in exc.message:
+                LOG.warn(_("%s is already mounted"), nfs_share)
+            else:
+                raise
+
+    @staticmethod
+    def get_hash_str(base_str):
+        """returns string that represents hash of base_str (in hex format)."""
+        return hashlib.md5(base_str).hexdigest()
+
+    @staticmethod
+    def _path_exists(path):
+        """Check path."""
+        try:
+            return utils.execute('stat', path, run_as_root=True)
+        except exception.ProcessExecutionError:
+            return False
+
+
+class LibvirtAOEVolumeDriver(LibvirtBaseVolumeDriver):
+    """Driver to attach AoE volumes to libvirt."""
+    def __init__(self, connection):
+        super(LibvirtAOEVolumeDriver,
+              self).__init__(connection, is_block_dev=True)
+
+    def _aoe_discover(self):
+        """Call aoe-discover (aoe-tools) AoE Discover."""
+        (out, err) = utils.execute('aoe-discover',
+                                   run_as_root=True, check_exit_code=0)
+        return (out, err)
+
+    def _aoe_revalidate(self, aoedev):
+        """Revalidate the LUN Geometry (When an AoE ID is reused)."""
+        (out, err) = utils.execute('aoe-revalidate', aoedev,
+                                   run_as_root=True, check_exit_code=0)
+        return (out, err)
+
+    def connect_volume(self, connection_info, mount_device):
+        shelf = connection_info['data']['target_shelf']
+        lun = connection_info['data']['target_lun']
+        aoedev = 'e%s.%s' % (shelf, lun)
+        aoedevpath = '/dev/etherd/%s' % (aoedev)
+
+        if os.path.exists(aoedevpath):
+            # NOTE(jbr_): If aoedevpath already exists, revalidate the LUN.
+            self._aoe_revalidate(aoedev)
+        else:
+            # NOTE(jbr_): If aoedevpath does not exist, do a discover.
+            self._aoe_discover()
+
+        #NOTE(jbr_): Device path is not always present immediately
+        def _wait_for_device_discovery(aoedevpath, mount_device):
+            tries = self.tries
+            if os.path.exists(aoedevpath):
+                raise utils.LoopingCallDone()
+
+            if self.tries >= CONF.num_aoe_discover_tries:
+                raise exception.NovaException(_("AoE device not found at %s") %
+                                                (aoedevpath))
+            LOG.warn(_("AoE volume not yet found at: %(aoedevpath)s. "
+                       "Try number: %(tries)s") %
+                     locals())
+
+            self._aoe_discover()
+            self.tries = self.tries + 1
+
+        self.tries = 0
+        timer = utils.FixedIntervalLoopingCall(_wait_for_device_discovery,
+                                               aoedevpath, mount_device)
+        timer.start(interval=2).wait()
+
+        tries = self.tries
+        if tries != 0:
+            LOG.debug(_("Found AoE device %(aoedevpath)s "
+                        "(after %(tries)s rediscover)") %
+                      locals())
+
+        conf = super(LibvirtAOEVolumeDriver,
+                     self).connect_volume(connection_info, mount_device)
+        conf.source_type = "block"
+        conf.source_path = aoedevpath
+        return conf
+
+
+class LibvirtGlusterfsVolumeDriver(LibvirtBaseVolumeDriver):
+    """Class implements libvirt part of volume driver for GlusterFS."""
+
+    def __init__(self, connection):
+        """Create back-end to glusterfs."""
+        super(LibvirtGlusterfsVolumeDriver,
+              self).__init__(connection, is_block_dev=False)
+
+    def connect_volume(self, connection_info, mount_device):
+        """Connect the volume. Returns xml for libvirt."""
+        conf = super(LibvirtGlusterfsVolumeDriver,
+                     self).connect_volume(connection_info, mount_device)
+        path = self._ensure_mounted(connection_info['data']['export'])
+        path = os.path.join(path, connection_info['data']['name'])
+        conf.source_type = 'file'
+        conf.source_path = path
+        return conf
+
+    def _ensure_mounted(self, glusterfs_export):
+        """
+        @type glusterfs_export: string
+        """
+        mount_path = os.path.join(CONF.glusterfs_mount_point_base,
+                                  self.get_hash_str(glusterfs_export))
+        self._mount_glusterfs(mount_path, glusterfs_export, ensure=True)
+        return mount_path
+
+    def _mount_glusterfs(self, mount_path, glusterfs_share, ensure=False):
+        """Mount glusterfs export to mount path."""
+        if not self._path_exists(mount_path):
+            utils.execute('mkdir', '-p', mount_path)
+
+        try:
+            utils.execute('mount', '-t', 'glusterfs', glusterfs_share,
+                          mount_path,
+                          run_as_root=True)
+        except exception.ProcessExecutionError as exc:
+            if ensure and 'already mounted' in exc.message:
+                LOG.warn(_("%s is already mounted"), glusterfs_share)
+            else:
+                raise
+
+    @staticmethod
+    def get_hash_str(base_str):
+        """returns string that represents hash of base_str (in hex format)."""
+        return hashlib.md5(base_str).hexdigest()
+
+    @staticmethod
+    def _path_exists(path):
+        """Check path."""
+        try:
+            return utils.execute('stat', path, run_as_root=True)
+        except exception.ProcessExecutionError:
+            return False
+
+
+class LibvirtFibreChannelVolumeDriver(LibvirtBaseVolumeDriver):
+    """Driver to attach Fibre Channel Network volumes to libvirt."""
+
+    def __init__(self, connection):
+        super(LibvirtFibreChannelVolumeDriver,
+              self).__init__(connection, is_block_dev=False)
+
+    def _get_pci_num(self, hba):
+        # NOTE(walter-boring)
+        # device path is in format of
+        # /sys/devices/pci0000:00/0000:00:03.0/0000:05:00.3/host2/fc_host/host2
+        # sometimes an extra entry exists before the host2 value
+        # we always want the value prior to the host2 value
+        pci_num = None
+        if hba is not None:
+            if "device_path" in hba:
+                index = 0
+                device_path = hba['device_path'].split('/')
+                for value in device_path:
+                    if value.startswith('host'):
+                        break
+                    index = index + 1
+
+                if index > 0:
+                    pci_num = device_path[index - 1]
+
+        return pci_num
+
+    @lockutils.synchronized('connect_volume', 'nova-')
+    def connect_volume(self, connection_info, disk_info):
+        """Attach the volume to instance_name."""
+        fc_properties = connection_info['data']
+        mount_device = disk_info["dev"]
+
+        ports = fc_properties['target_wwn']
+        wwns = []
+        # we support a list of wwns or a single wwn
+        if isinstance(ports, list):
+            for wwn in ports:
+                wwns.append(wwn)
+        elif isinstance(ports, str):
+            wwns.append(ports)
+
+        # We need to look for wwns on every hba
+        # because we don't know ahead of time
+        # where they will show up.
+        hbas = virtutils.get_fc_hbas_info()
+        host_devices = []
+        for hba in hbas:
+            pci_num = self._get_pci_num(hba)
+            if pci_num is not None:
+                for wwn in wwns:
+                    target_wwn = "0x%s" % wwn.lower()
+                    host_device = ("/dev/disk/by-path/pci-%s-fc-%s-lun-%s" %
+                                  (pci_num,
+                                   target_wwn,
+                                   fc_properties.get('target_lun', 0)))
+                    host_devices.append(host_device)
+
+        if len(host_devices) == 0:
+            # this is empty because we don't have any FC HBAs
+            msg = _("We are unable to locate any Fibre Channel devices")
+            raise exception.NovaException(msg)
+
+        # The /dev/disk/by-path/... node is not always present immediately
+        # We only need to find the first device.  Once we see the first device
+        # multipath will have any others.
+        def _wait_for_device_discovery(host_devices, mount_device):
+            tries = self.tries
+            for device in host_devices:
+                LOG.debug(_("Looking for Fibre Channel dev %(device)s")
+                          % locals())
+                if os.path.exists(device):
+                    self.host_device = device
+                    # get the /dev/sdX device.  This is used
+                    # to find the multipath device.
+                    self.device_name = os.path.realpath(device)
+                    raise utils.LoopingCallDone()
+
+            if self.tries >= CONF.num_iscsi_scan_tries:
+                msg = _("Fibre Channel device not found.")
+                raise exception.NovaException(msg)
+
+            LOG.warn(_("Fibre volume not yet found at: %(mount_device)s. "
+                       "Will rescan & retry.  Try number: %(tries)s") %
+                     locals())
+
+            linuxscsi.rescan_hosts(hbas)
+            self.tries = self.tries + 1
+
+        self.host_device = None
+        self.device_name = None
+        self.tries = 0
+        timer = utils.FixedIntervalLoopingCall(_wait_for_device_discovery,
+                                               host_devices, mount_device)
+        timer.start(interval=2).wait()
+
+        tries = self.tries
+        if self.host_device is not None and self.device_name is not None:
+            LOG.debug(_("Found Fibre Channel volume %(mount_device)s "
+                        "(after %(tries)s rescans)") % locals())
+
+        # see if the new drive is part of a multipath
+        # device.  If so, we'll use the multipath device.
+        mdev_info = linuxscsi.find_multipath_device(self.device_name)
+        if mdev_info is not None:
+            LOG.debug(_("Multipath device discovered %(device)s")
+                      % {'device': mdev_info['device']})
+            device_path = mdev_info['device']
+            connection_info['data']['devices'] = mdev_info['devices']
+        else:
+            # we didn't find a multipath device.
+            # so we assume the kernel only sees 1 device
+            device_path = self.host_device
+            device_info = linuxscsi.get_device_info(self.device_name)
+            connection_info['data']['devices'] = [device_info]
+
+        conf = super(LibvirtFibreChannelVolumeDriver,
+                     self).connect_volume(connection_info, disk_info)
+
+        conf.source_type = "block"
+        conf.source_path = device_path
+        return conf
+
+    @lockutils.synchronized('connect_volume', 'nova-')
+    def disconnect_volume(self, connection_info, mount_device):
+        """Detach the volume from instance_name."""
+        super(LibvirtFibreChannelVolumeDriver,
+              self).disconnect_volume(connection_info, mount_device)
+        devices = connection_info['data']['devices']
+
+        # There may have been more than 1 device mounted
+        # by the kernel for this volume.  We have to remove
+        # all of them
+        for device in devices:
+            linuxscsi.remove_device(device)
+
+
+class LibvirtScalityVolumeDriver(LibvirtBaseVolumeDriver):
+    """Scality SOFS Nova driver. Provide hypervisors with access
+    to sparse files on SOFS. """
+
+    def __init__(self, connection):
+        """Create back-end to SOFS and check connection."""
+        super(LibvirtScalityVolumeDriver,
+              self).__init__(connection, is_block_dev=False)
+
+    def connect_volume(self, connection_info, disk_info):
+        """Connect the volume. Returns xml for libvirt."""
+        self._check_prerequisites()
+        self._mount_sofs()
+        conf = super(LibvirtScalityVolumeDriver,
+                     self).connect_volume(connection_info, disk_info)
+        path = os.path.join(CONF.scality_sofs_mount_point,
+                            connection_info['data']['sofs_path'])
+        conf.source_type = 'file'
+        conf.source_path = path
+
+        # The default driver cache policy is 'none', and this causes
+        # qemu/kvm to open the volume file with O_DIRECT, which is
+        # rejected by FUSE (on kernels older than 3.3). Scality SOFS
+        # is FUSE based, so we must provide a more sensible default.
+        conf.driver_cache = 'writethrough'
+
+        return conf
+
+    def _check_prerequisites(self):
+        """Sanity checks before attempting to mount SOFS."""
+
+        # config is mandatory
+        config = CONF.scality_sofs_config
+        if not config:
+            msg = _("Value required for 'scality_sofs_config'")
+            LOG.warn(msg)
+            raise exception.NovaException(msg)
+
+        # config can be a file path or a URL, check it
+        if urlparse.urlparse(config).scheme == '':
+            # turn local path into URL
+            config = 'file://%s' % config
+        try:
+            urllib2.urlopen(config, timeout=5).close()
+        except urllib2.URLError as e:
+            msg = _("Cannot access 'scality_sofs_config': %s") % e
+            LOG.warn(msg)
+            raise exception.NovaException(msg)
+
+        # mount.sofs must be installed
+        if not os.access('/sbin/mount.sofs', os.X_OK):
+            msg = _("Cannot execute /sbin/mount.sofs")
+            LOG.warn(msg)
+            raise exception.NovaException(msg)
+
+    def _mount_sofs(self):
+        config = CONF.scality_sofs_config
+        mount_path = CONF.scality_sofs_mount_point
+        sysdir = os.path.join(mount_path, 'sys')
+
+        if not os.path.isdir(mount_path):
+            utils.execute('mkdir', '-p', mount_path)
+        if not os.path.isdir(sysdir):
+            utils.execute('mount', '-t', 'sofs', config, mount_path,
+                          run_as_root=True)
+        if not os.path.isdir(sysdir):
+            msg = _("Cannot mount Scality SOFS, check syslog for errors")
+            LOG.warn(msg)
+            raise exception.NovaException(msg)

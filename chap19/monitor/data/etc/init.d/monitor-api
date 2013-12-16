@@ -1,0 +1,75 @@
+#!/bin/bash
+
+set -e
+
+#---------------------------------------------------
+# Set up ENV
+#---------------------------------------------------
+
+mkdir -p /var/log/monitor/
+logfile=/var/log/monitor/monitor-api.log
+
+function kill_by_name() {
+out=`ps aux | grep "$1" | grep -v "$1.*.sh" | grep -v "kill_by_name" | grep -v instan | grep -v ssh | grep -v grep | grep -v rabbitmq | grep python | wc -l`
+if [[ $out -gt 0 ]]; then
+     ps aux | grep "$1" | grep -v "$1.*.sh" | grep -v "kill_by_name" | grep -v instan | grep -v ssh | grep -v grep | grep -v rabbitmq | grep python | awk '{print $2}' | xargs -i kill -9 {}
+fi
+}
+
+#---------------------------------------------------
+# Check monitor-api is running?
+#---------------------------------------------------
+
+is_running=`ps aux | grep monitor-api | grep -v grep | grep -v "vi monitor-api" | \
+    grep -v "vim monitor-api" | grep -v "monitor-api st" | wc -l`
+
+#---------------------------------------------------
+# Test function for monitor-api
+#---------------------------------------------------
+
+case "$1" in
+    status)
+        if [[ $is_running -gt 0 ]]; then
+            echo "monitor-api is running"
+            tail -5 $logfile
+        else
+            echo "monitor-api is not running"
+            cat $logfile | grep -i "error" | tail -5
+        fi
+        ;;
+    start)
+        if [[ $is_running -gt 0 ]]; then
+            echo "monitor-api is running"
+        else
+            nohup python /opt/stack/monitor/bin/monitor-api \
+              --config-file /etc/monitor/monitor.conf \
+              >$logfile 2>&1 &
+            echo "monitor-api begin to start, please wait."
+            sleep 5
+            cat $logfile | tail -5
+        fi
+        ;;
+    stop)
+        if [[ $is_running -gt 0 ]]; then
+            echo "begin to stop monitor-api"
+            kill_by_name monitor-api >/dev/null 2>&1 &
+        else
+            echo "monitor-api is stopped"
+        fi
+        ;;
+    restart)
+        if [[ $is_running -gt 0 ]]; then
+            kill_by_name monitor-api > /dev/null
+        fi
+        nohup python /opt/stack/monitor/bin/monitor-api \
+          --config-file /etc/monitor/monitor.conf \
+          >$logfile 2>&1 &
+        echo "monitor-api begin to start, please wait."
+        sleep 5
+        cat $logfile | tail -5
+ 
+        ;;
+    *)
+        echo "Usage: /etc/init.d/monitor-api {start|stop|restart|status}"
+        exit 0;;
+esac

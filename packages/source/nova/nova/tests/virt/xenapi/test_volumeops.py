@@ -1,0 +1,166 @@
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+# Copyright (c) 2012 Citrix Systems, Inc.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+import collections
+
+from nova import test
+from nova.tests.xenapi import stubs
+from nova.virt.xenapi import volumeops
+
+
+class VolumeAttachTestCase(test.TestCase):
+    def test_detach_volume_call(self):
+        registered_calls = []
+
+        def regcall(label):
+            def side_effect(*args, **kwargs):
+                registered_calls.append(label)
+            return side_effect
+
+        ops = volumeops.VolumeOps('session')
+        self.mox.StubOutWithMock(volumeops.vm_utils, 'vm_ref_or_raise')
+        self.mox.StubOutWithMock(volumeops.vm_utils, 'find_vbd_by_number')
+        self.mox.StubOutWithMock(volumeops.vm_utils, '_is_vm_shutdown')
+        self.mox.StubOutWithMock(volumeops.vm_utils, 'unplug_vbd')
+        self.mox.StubOutWithMock(volumeops.vm_utils, 'destroy_vbd')
+        self.mox.StubOutWithMock(volumeops.volume_utils, 'get_device_number')
+        self.mox.StubOutWithMock(volumeops.volume_utils, 'find_sr_from_vbd')
+        self.mox.StubOutWithMock(volumeops.volume_utils, 'purge_sr')
+
+        volumeops.vm_utils.vm_ref_or_raise('session', 'instance_1').AndReturn(
+            'vmref')
+
+        volumeops.volume_utils.get_device_number('mountpoint').AndReturn(
+            'devnumber')
+
+        volumeops.vm_utils.find_vbd_by_number(
+            'session', 'vmref', 'devnumber').AndReturn('vbdref')
+
+        volumeops.vm_utils._is_vm_shutdown('session', 'vmref').AndReturn(
+            False)
+
+        volumeops.vm_utils.unplug_vbd('session', 'vbdref')
+
+        volumeops.vm_utils.destroy_vbd('session', 'vbdref').WithSideEffects(
+            regcall('destroy_vbd'))
+
+        volumeops.volume_utils.find_sr_from_vbd(
+            'session', 'vbdref').WithSideEffects(
+                regcall('find_sr_from_vbd')).AndReturn('srref')
+
+        volumeops.volume_utils.purge_sr('session', 'srref')
+
+        self.mox.ReplayAll()
+
+        ops.detach_volume(
+            dict(driver_volume_type='iscsi', data='conn_data'),
+            'instance_1', 'mountpoint')
+
+        self.assertEquals(
+            ['find_sr_from_vbd', 'destroy_vbd'], registered_calls)
+
+    def test_attach_volume_call(self):
+        ops = volumeops.VolumeOps('session')
+        self.mox.StubOutWithMock(ops, '_connect_volume')
+        self.mox.StubOutWithMock(volumeops.vm_utils, 'vm_ref_or_raise')
+        self.mox.StubOutWithMock(volumeops.volume_utils, 'get_device_number')
+
+        volumeops.vm_utils.vm_ref_or_raise('session', 'instance_1').AndReturn(
+            'vmref')
+
+        volumeops.volume_utils.get_device_number('mountpoint').AndReturn(
+            'devnumber')
+
+        ops._connect_volume(
+            'conn_data', 'devnumber', 'instance_1', 'vmref', hotplug=True)
+
+        self.mox.ReplayAll()
+        ops.attach_volume(
+            dict(driver_volume_type='iscsi', data='conn_data'),
+            'instance_1', 'mountpoint')
+
+    def test_attach_volume_no_hotplug(self):
+        ops = volumeops.VolumeOps('session')
+        self.mox.StubOutWithMock(ops, '_connect_volume')
+        self.mox.StubOutWithMock(volumeops.vm_utils, 'vm_ref_or_raise')
+        self.mox.StubOutWithMock(volumeops.volume_utils, 'get_device_number')
+
+        volumeops.vm_utils.vm_ref_or_raise('session', 'instance_1').AndReturn(
+            'vmref')
+
+        volumeops.volume_utils.get_device_number('mountpoint').AndReturn(
+            'devnumber')
+
+        ops._connect_volume(
+            'conn_data', 'devnumber', 'instance_1', 'vmref', hotplug=False)
+
+        self.mox.ReplayAll()
+        ops.attach_volume(
+            dict(driver_volume_type='iscsi', data='conn_data'),
+            'instance_1', 'mountpoint', hotplug=False)
+
+    def test_connect_volume_no_hotplug(self):
+        session = stubs.FakeSessionForVolumeTests('fake_uri')
+        ops = volumeops.VolumeOps(session)
+        instance_name = 'instance_1'
+        sr_uuid = '1'
+        sr_label = 'Disk-for:%s' % instance_name
+        sr_params = ''
+        sr_ref = 'sr_ref'
+        vdi_uuid = '2'
+        vdi_ref = 'vdi_ref'
+        vbd_ref = 'vbd_ref'
+        connection_data = {'vdi_uuid': vdi_uuid}
+        vm_ref = 'vm_ref'
+        dev_number = 1
+
+        called = collections.defaultdict(bool)
+
+        def fake_call_xenapi(self, method, *args, **kwargs):
+            called[method] = True
+
+        self.stubs.Set(ops._session, 'call_xenapi', fake_call_xenapi)
+
+        self.mox.StubOutWithMock(volumeops.volume_utils, 'parse_sr_info')
+        volumeops.volume_utils.parse_sr_info(
+            connection_data, sr_label).AndReturn(
+                tuple([sr_uuid, sr_label, sr_params]))
+
+        self.mox.StubOutWithMock(
+            volumeops.volume_utils, 'find_sr_by_uuid')
+        volumeops.volume_utils.find_sr_by_uuid(session, sr_uuid).AndReturn(
+                None)
+
+        self.mox.StubOutWithMock(
+            volumeops.volume_utils, 'introduce_sr')
+        volumeops.volume_utils.introduce_sr(
+            session, sr_uuid, sr_label, sr_params).AndReturn(sr_ref)
+
+        self.mox.StubOutWithMock(volumeops.volume_utils, 'introduce_vdi')
+        volumeops.volume_utils.introduce_vdi(
+            session, sr_ref, vdi_uuid=vdi_uuid).AndReturn(vdi_ref)
+
+        self.mox.StubOutWithMock(volumeops.vm_utils, 'create_vbd')
+        volumeops.vm_utils.create_vbd(
+            session, vm_ref, vdi_ref, dev_number,
+            bootable=False, osvol=True).AndReturn(vbd_ref)
+
+        self.mox.ReplayAll()
+
+        ops._connect_volume(connection_data, dev_number, instance_name,
+                            vm_ref, hotplug=False)
+
+        self.assertEquals(False, called['VBD.plug'])

@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+"""
+swift-recon-cron.py
+"""
+
+import os
+import sys
+from ConfigParser import ConfigParser
+from swift.common.utils import get_logger, dump_recon_cache
+
+
+def get_async_count(device_dir, logger):
+    async_count = 0
+    for i in os.listdir(device_dir):
+        asyncdir = os.path.join(device_dir, i, "async_pending")
+        if os.path.isdir(asyncdir):
+            for entry in os.listdir(asyncdir):
+                if os.path.isdir(os.path.join(asyncdir, entry)):
+                    async_hdir = os.path.join(asyncdir, entry)
+                    async_count += len(os.listdir(async_hdir))
+    return async_count
+
+
+def main():
+    c = ConfigParser()
+    try:
+        conf_path = sys.argv[1]
+    except Exception:
+        print "Usage: %s CONF_FILE" % sys.argv[0].split('/')[-1]
+        print "ex: swift-recon-cron /etc/swift/object-server.conf"
+        sys.exit(1)
+    if not c.read(conf_path):
+        print "Unable to read config file %s" % conf_path
+        sys.exit(1)
+    conf = dict(c.items('filter:recon'))
+    device_dir = conf.get('devices', '/srv/node')
+    recon_cache_path = conf.get('recon_cache_path', '/var/cache/swift')
+    recon_lock_path = conf.get('recon_lock_path', '/var/lock')
+    cache_file = os.path.join(recon_cache_path, "object.recon")
+    lock_dir = os.path.join(recon_lock_path, "swift-recon-object-cron")
+    conf['log_name'] = conf.get('log_name', 'recon-cron')
+    logger = get_logger(conf, log_route='recon-cron')
+    try:
+        os.mkdir(lock_dir)
+    except OSError as e:
+        logger.critical(_(str(e)))
+        print str(e)
+        sys.exit(1)
+    try:
+        asyncs = get_async_count(device_dir, logger)
+    except Exception:
+        logger.exception(
+            _('Exception during recon-cron while accessing devices'))
+
+    dump_recon_cache({'async_pending': asyncs}, cache_file, logger)
+
+    try:
+        os.rmdir(lock_dir)
+    except Exception:
+        logger.exception(_('Exception remove cronjob lock'))
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,38 @@
+#---------------------------------------------
+# Set up Env.
+#---------------------------------------------
+
+MYSQL_ROOT_PASSWORD=mysqlpassword
+MYSQL_HOST=10.239.82.83
+
+#---------------------------------------------
+# RabbitMQ Service
+#---------------------------------------------
+
+RABBITMQ_HOST=10.239.82.159
+RABBITMQ_USER=guest
+RABBITMQ_PASSWORD=rabbit_password
+
+#---------------------------------------------
+# Keystone
+#---------------------------------------------
+
+MYSQL_KEYSTONE_USER=keystone
+MYSQL_KEYSTONE_PASSWORD=keystone_password
+KEYSTONE_HOST=10.239.82.179
+ADMIN_PASSWORD=admin_user_password
+ADMIN_TOKEN=admin_token
+SERVICE_TOKEN=$ADMIN_TOKEN
+ADMIN_USER=admin
+SERVICE_TENANT_NAME=service
+
+#---------------------------------------------
+# Swift Service
+#---------------------------------------------
+
+SWIFT_HOST=192.168.111.16
+SWIFT_NODE_IP=192.168.111.18
+SWIFT_NODE_IP={192.168.111.18}
+KEYSTONE_SWIFT_SERVICE_PASSWORD=keystone_swift_password
+SWIFT_DISK_PATH=/dev/vdb
+SWIFT_NODE_NIC_CARD=eth2

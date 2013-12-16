@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Instance Overview" %}{% endblock %}
+
+{% block page_header %}
+  {% include "horizon/common/_page_header.html" with title=_("Overview") %}
+{% endblock page_header %}
+
+{% block main %}
+  {% include "horizon/common/_quota_summary.html" %}
+  {% include "horizon/common/_usage_summary.html" %}
+  {{ table.render }}
+{% endblock %}

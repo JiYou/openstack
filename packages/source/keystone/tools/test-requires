@@ -1,0 +1,34 @@
+# Optional backend: SQL
+pysqlite
+
+# Optional backend: Memcache
+python-memcached
+
+# Optional backend: LDAP
+python-ldap==2.3.13 # authenticate against an existing LDAP server
+
+# Testing
+coverage # computes code coverage percentages
+mox # mock object framework
+nose # for test discovery and console feedback
+nosexcover
+openstack.nose_plugin
+nosehtmloutput
+pylint # static code analysis
+pep8==1.3.3 # checks for PEP8 code style compliance
+Sphinx>=1.1.2 # required to build documentation
+unittest2 # backport of unittest lib in python 2.7
+webtest # test wsgi apps without starting an http server
+distribute>=0.6.24
+
+# for python-keystoneclient
+httplib2 # keystoneclient <0.2.1
+requests>=1.0.0 # replaces httplib2 in keystoneclient >=0.2.1
+keyring
+
+# swift_auth test dependencies
+http://tarballs.openstack.org/swift/swift-master.tar.gz#egg=swift
+netifaces
+
+# For translations processing
+Babel

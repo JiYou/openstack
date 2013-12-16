@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% load i18n %}
+{% block title %}{% trans "Containers" %}{% endblock %}
+
+{% block page_header %}
+  <div class='page-header'>
+    <h2>{% trans "Containers" %}</h2>
+  </div>
+{% endblock page_header %}
+
+{% block main %}
+  {{ swift_browser.render }}
+{% endblock %}

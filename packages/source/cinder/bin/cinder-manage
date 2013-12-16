@@ -1,0 +1,794 @@
+#!/usr/bin/env python
+# vim: tabstop=4 shiftwidth=4 softtabstop=4
+
+# Copyright (c) 2011 X.commerce, a business unit of eBay Inc.
+# Copyright 2010 United States Government as represented by the
+# Administrator of the National Aeronautics and Space Administration.
+# All Rights Reserved.
+#
+#    Licensed under the Apache License, Version 2.0 (the "License"); you may
+#    not use this file except in compliance with the License. You may obtain
+#    a copy of the License at
+#
+#         http://www.apache.org/licenses/LICENSE-2.0
+#
+#    Unless required by applicable law or agreed to in writing, software
+#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+#    License for the specific language governing permissions and limitations
+#    under the License.
+
+# Interactive shell based on Django:
+#
+# Copyright (c) 2005, the Lawrence Journal-World
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+#     1. Redistributions of source code must retain the above copyright notice,
+#        this list of conditions and the following disclaimer.
+#
+#     2. Redistributions in binary form must reproduce the above copyright
+#        notice, this list of conditions and the following disclaimer in the
+#        documentation and/or other materials provided with the distribution.
+#
+#     3. Neither the name of Django nor the names of its contributors may be
+#        used to endorse or promote products derived from this software without
+#        specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+"""
+  CLI interface for cinder management.
+"""
+
+import gettext
+import os
+import sys
+import uuid
+
+from sqlalchemy import create_engine, MetaData, Table
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+
+
+# If ../cinder/__init__.py exists, add ../ to Python search path, so that
+# it will override what happens to be installed in /usr/(local/)lib/python...
+POSSIBLE_TOPDIR = os.path.normpath(os.path.join(os.path.abspath(sys.argv[0]),
+                                   os.pardir,
+                                   os.pardir))
+if os.path.exists(os.path.join(POSSIBLE_TOPDIR, 'cinder', '__init__.py')):
+    sys.path.insert(0, POSSIBLE_TOPDIR)
+
+gettext.install('cinder', unicode=1)
+
+from oslo.config import cfg
+
+from cinder import context
+from cinder import db
+from cinder.db import migration
+from cinder import exception
+from cinder import flags
+from cinder.openstack.common import log as logging
+from cinder.openstack.common import rpc
+from cinder.openstack.common import uuidutils
+from cinder import utils
+from cinder import version
+
+FLAGS = flags.FLAGS
+
+
+# Decorators for actions
+def args(*args, **kwargs):
+    def _decorator(func):
+        func.__dict__.setdefault('args', []).insert(0, (args, kwargs))
+        return func
+    return _decorator
+
+
+def param2id(object_id):
+    """Helper function to convert various id types to internal id.
+    args: [object_id], e.g. 'vol-0000000a' or 'volume-0000000a' or '10'
+    """
+    if uuidutils.is_uuid_like(object_id):
+        return object_id
+    elif '-' in object_id:
+        # FIXME(ja): mapping occurs in nova?
+        pass
+    else:
+        return int(object_id)
+
+
+class ShellCommands(object):
+    def bpython(self):
+        """Runs a bpython shell.
+
+        Falls back to Ipython/python shell if unavailable"""
+        self.run('bpython')
+
+    def ipython(self):
+        """Runs an Ipython shell.
+
+        Falls back to Python shell if unavailable"""
+        self.run('ipython')
+
+    def python(self):
+        """Runs a python shell.
+
+        Falls back to Python shell if unavailable"""
+        self.run('python')
+
+    @args('--shell', dest="shell",
+          metavar='<bpython|ipython|python>',
+          help='Python shell')
+    def run(self, shell=None):
+        """Runs a Python interactive interpreter."""
+        if not shell:
+            shell = 'bpython'
+
+        if shell == 'bpython':
+            try:
+                import bpython
+                bpython.embed()
+            except ImportError:
+                shell = 'ipython'
+        if shell == 'ipython':
+            try:
+                import IPython
+                # Explicitly pass an empty list as arguments, because
+                # otherwise IPython would use sys.argv from this script.
+                shell = IPython.Shell.IPShell(argv=[])
+                shell.mainloop()
+            except ImportError:
+                shell = 'python'
+
+        if shell == 'python':
+            import code
+            try:
+                # Try activating rlcompleter, because it's handy.
+                import readline
+            except ImportError:
+                pass
+            else:
+                # We don't have to wrap the following import in a 'try',
+                # because we already know 'readline' was imported successfully.
+                import rlcompleter
+                readline.parse_and_bind("tab:complete")
+            code.interact()
+
+    @args('--path', required=True, help='Script path')
+    def script(self, path):
+        """Runs the script from the specifed path with flags set properly.
+        arguments: path"""
+        exec(compile(open(path).read(), path, 'exec'), locals(), globals())
+
+
+def _db_error(caught_exception):
+    print caught_exception
+    print _("The above error may show that the database has not "
+            "been created.\nPlease create a database using "
+            "'cinder-manage db sync' before running this command.")
+    exit(1)
+
+
+class HostCommands(object):
+    """List hosts."""
+
+    @args('zone', nargs='?', default=None,
+          help='Availability Zone (default: %(default)s)')
+    def list(self, zone=None):
+        """Show a list of all physical hosts. Filter by zone.
+        args: [zone]"""
+        print "%-25s\t%-15s" % (_('host'),
+                                _('zone'))
+        ctxt = context.get_admin_context()
+        services = db.service_get_all(ctxt)
+        if zone:
+            services = [s for s in services if s['availability_zone'] == zone]
+        hosts = []
+        for srv in services:
+            if not [h for h in hosts if h['host'] == srv['host']]:
+                hosts.append(srv)
+
+        for h in hosts:
+            print "%-25s\t%-15s" % (h['host'], h['availability_zone'])
+
+
+class DbCommands(object):
+    """Class for managing the database."""
+
+    def __init__(self):
+        pass
+
+    @args('version', nargs='?', default=None,
+          help='Database version')
+    def sync(self, version=None):
+        """Sync the database up to the most recent version."""
+        return migration.db_sync(version)
+
+    def version(self):
+        """Print the current database version."""
+        print migration.db_version()
+
+
+class VersionCommands(object):
+    """Class for exposing the codebase version."""
+
+    def __init__(self):
+        pass
+
+    def list(self):
+        print(version.version_string())
+
+    def __call__(self):
+        self.list()
+
+
+class ImportCommands(object):
+    """Methods for importing Nova volumes to Cinder.
+
+    EXPECTATIONS:
+    These methods will do two things:
+      1. Import relevant Nova DB info in to Cinder
+      2. Import persistent tgt files from Nova to Cinder (see copy_tgt_files)
+
+    If you're using VG's (local storage) for your backend YOU MUST install
+    Cinder on the same node that you're migrating from.
+    """
+    def __init__(self):
+        pass
+
+    def _map_table(self, table):
+        class Mapper(declarative_base()):
+            __table__ = table
+        return Mapper
+
+    def _open_session(self, con_info):
+        # Note(jdg): The echo option below sets whether to dispaly db command
+        # debug info.
+        engine = create_engine(con_info,
+                               convert_unicode=True,
+                               echo=False)
+        session = sessionmaker(bind=engine)
+        return (session(), engine)
+
+    def _backup_cinder_db(self):
+        #First, dump the dest_db as a backup incase this goes wrong
+        cinder_dump = utils.execute('mysqldump', 'cinder')
+        if 'Dump completed on' in cinder_dump[0]:
+            with open('./cinder_db_bkup.sql', 'w+') as fo:
+                for line in cinder_dump:
+                    fo.write(line)
+        else:
+            raise exception.InvalidResults()
+
+    def _import_db(self, src_db, dest_db, backup_db):
+        # Remember order matters due to FK's
+        table_list = ['sm_flavors',
+                      'sm_backend_config',
+                      'snapshots',
+                      'volume_types',
+                      'volumes',
+                      'iscsi_targets',
+                      'sm_volume',
+                      'volume_metadata',
+                      'volume_type_extra_specs']
+
+        quota_table_list = ['quota_classes',
+                            'quota_usages',
+                            'quotas',
+                            'reservations']
+
+        if backup_db > 0:
+            if 'mysql:' not in dest_db:
+                print (_('Sorry, only mysql backups are supported!'))
+                raise exception.InvalidRequest()
+            else:
+                self._backup_cinder_db()
+
+        (src, src_engine) = self._open_session(src_db)
+        src_meta = MetaData(bind=src_engine)
+        (dest, dest_engine) = self._open_session(dest_db)
+
+        # First make sure nova is at Folsom
+        table = Table('migrate_version', src_meta, autoload=True)
+        if src.query(table).first().version < 132:
+            print (_('ERROR: Specified Nova DB is not at a compatible '
+                     'migration version!\nNova must be at Folsom or newer '
+                     'to import into Cinder database.'))
+            sys.exit(2)
+
+        for table_name in table_list:
+            print (_('Importing table %s...') % table_name)
+            table = Table(table_name, src_meta, autoload=True)
+            new_row = self._map_table(table)
+            columns = table.columns.keys()
+            for row in src.query(table).all():
+                data = dict([(str(column), getattr(row, column))
+                             for column in columns])
+                dest.add(new_row(**data))
+            dest.commit()
+
+        for table_name in quota_table_list:
+            print (_('Importing table %s...') % table_name)
+            table = Table(table_name, src_meta, autoload=True)
+            new_row = self._map_table(table)
+            columns = table.columns.keys()
+            for row in src.query(table).all():
+                if row.resource == 'gigabytes' or row.resource == 'volumes':
+                    data = dict([(str(column), getattr(row, column))
+                                 for column in columns])
+                    dest.add(new_row(**data))
+                dest.commit()
+
+    @args('src', metavar='<Nova DB>',
+          help='db-engine://db_user[:passwd]@db_host[:port]\t\t'
+               'example: mysql://root:secrete@192.168.137.1')
+    @args('dest', metavar='<Cinder DB>',
+          help='db-engine://db_user[:passwd]@db_host[:port]\t\t'
+               'example: mysql://root:secrete@192.168.137.1')
+    @args('--backup', metavar='<0|1>', choices=[0, 1], default=1,
+          help='Perform mysqldump of cinder db before writing to it'
+               ' (default: %(default)d)')
+    def import_db(self, src_db, dest_db, backup_db=1):
+        """Import relevant volume DB entries from Nova into Cinder.
+
+        NOTE:
+        Your Cinder DB should be clean WRT volume entries.
+
+        NOTE:
+        We take an sqldump of the cinder DB before mods
+        If you're not using mysql, set backup_db=0
+        and create your own backup.
+        """
+        src_db = '%s/nova' % src_db
+        dest_db = '%s/cinder' % dest_db
+        self._import_db(src_db, dest_db, backup_db)
+
+    @args('src',
+          help='e.g. (login@src_host:]/opt/stack/nova/volumes/)')
+    @args('dest', nargs='?', default=None,
+          help='e.g. (login@src_host:/opt/stack/cinder/volumes/) '
+               'optional, if emitted, \'volume_dir\' in config will be used')
+    def copy_ptgt_files(self, src_tgts, dest_tgts=None):
+        """Copy persistent scsi tgt files from nova to cinder.
+
+        Default destination is FLAGS.volume_dir or state_path/volumes/
+
+        PREREQUISITES:
+        Persistent tgts were introduced in Folsom.  If you're running
+        Essex or other release, this script is unnecessary.
+
+        NOTE:
+        If you're using local VG's and LVM for your nova volume backend
+        there's no point in copying these files over.  Leave them on
+        your Nova system as they won't do any good here.
+        """
+        if dest_tgts is None:
+            try:
+                dest_tgts = FLAGS.volumes_dir
+            except Exception:
+                dest_tgts = '%s/volumes' % FLAGS.state_path
+
+        utils.execute('rsync', '-avz', src_tgts, dest_tgts)
+
+
+class VolumeCommands(object):
+    """Methods for dealing with a cloud in an odd state."""
+
+    @args('volume_id',
+          help='Volume ID to be deleted')
+    def delete(self, volume_id):
+        """Delete a volume, bypassing the check that it
+        must be available."""
+        ctxt = context.get_admin_context()
+        volume = db.volume_get(ctxt, param2id(volume_id))
+        host = volume['host']
+
+        if not host:
+            print "Volume not yet assigned to host."
+            print "Deleting volume from database and skipping rpc."
+            db.volume_destroy(ctxt, param2id(volume_id))
+            return
+
+        if volume['status'] == 'in-use':
+            print "Volume is in-use."
+            print "Detach volume from instance and then try again."
+            return
+
+        rpc.cast(ctxt,
+                 rpc.queue_get_for(ctxt, FLAGS.volume_topic, host),
+                 {"method": "delete_volume",
+                  "args": {"volume_id": volume['id']}})
+
+    @args('volume_id',
+          help='Volume ID to be reattached')
+    def reattach(self, volume_id):
+        """Re-attach a volume that has previously been attached
+        to an instance.  Typically called after a compute host
+        has been rebooted."""
+        ctxt = context.get_admin_context()
+        volume = db.volume_get(ctxt, param2id(volume_id))
+        if not volume['instance_id']:
+            print "volume is not attached to an instance"
+            return
+        instance = db.instance_get(ctxt, volume['instance_id'])
+        host = instance['host']
+        rpc.cast(ctxt,
+                 rpc.queue_get_for(ctxt, FLAGS.compute_topic, host),
+                 {"method": "attach_volume",
+                  "args": {"instance_id": instance['id'],
+                           "volume_id": volume['id'],
+                           "mountpoint": volume['mountpoint']}})
+
+
+class StorageManagerCommands(object):
+    """Class for mangaging Storage Backends and Flavors."""
+
+    @args('flavor', nargs='?',
+          help='flavor to be listed')
+    def flavor_list(self, flavor=None):
+        ctxt = context.get_admin_context()
+
+        try:
+            if flavor is None:
+                flavors = db.sm_flavor_get_all(ctxt)
+            else:
+                flavors = db.sm_flavor_get(ctxt, flavor)
+        except exception.NotFound as ex:
+            print "error: %s" % ex
+            sys.exit(2)
+
+        print "%-18s\t%-20s\t%s" % (_('id'),
+                                    _('Label'),
+                                    _('Description'))
+
+        for flav in flavors:
+            print "%-18s\t%-20s\t%s" % (
+                flav['id'],
+                flav['label'],
+                flav['description'])
+
+    @args('label', help='flavor label')
+    @args('desc', help='flavor description')
+    def flavor_create(self, label, desc):
+        # TODO(renukaapte) flavor name must be unique
+        try:
+            db.sm_flavor_create(context.get_admin_context(),
+                                dict(label=label,
+                                     description=desc))
+        except exception.DBError, e:
+            _db_error(e)
+
+    @args('label', help='label of flavor to be deleted')
+    def flavor_delete(self, label):
+        try:
+            db.sm_flavor_delete(context.get_admin_context(), label)
+
+        except exception.DBError, e:
+            _db_error(e)
+
+    def _splitfun(self, item):
+        i = item.split("=")
+        return i[0:2]
+
+    @args('backend_conf_id', nargs='?', default=None)
+    def backend_list(self, backend_conf_id=None):
+        ctxt = context.get_admin_context()
+
+        try:
+            if backend_conf_id is None:
+                backends = db.sm_backend_conf_get_all(ctxt)
+            else:
+                backends = db.sm_backend_conf_get(ctxt, backend_conf_id)
+
+        except exception.NotFound as ex:
+            print "error: %s" % ex
+            sys.exit(2)
+
+        print "%-5s\t%-10s\t%-40s\t%-10s\t%s" % (_('id'),
+                                                 _('Flavor id'),
+                                                 _('SR UUID'),
+                                                 _('SR Type'),
+                                                 _('Config Parameters'),)
+
+        for b in backends:
+            print "%-5s\t%-10s\t%-40s\t%-10s\t%s" % (b['id'],
+                                                     b['flavor_id'],
+                                                     b['sr_uuid'],
+                                                     b['sr_type'],
+                                                     b['config_params'],)
+
+    @args('flavor_label')
+    @args('sr_type')
+    @args('args', nargs='*')
+    def backend_add(self, flavor_label, sr_type, *args):
+        # TODO(renukaapte) Add backend_introduce.
+        ctxt = context.get_admin_context()
+        params = dict(map(self._splitfun, args))
+        sr_uuid = uuid.uuid4()
+
+        if flavor_label is None:
+            print "error: backend needs to be associated with flavor"
+            sys.exit(2)
+
+        try:
+            flavors = db.sm_flavor_get(ctxt, flavor_label)
+
+        except exception.NotFound as ex:
+            print "error: %s" % ex
+            sys.exit(2)
+
+        config_params = " ".join(
+            ['%s=%s' % (key, params[key]) for key in params])
+
+        if 'sr_uuid' in params:
+            sr_uuid = params['sr_uuid']
+            try:
+                backend = db.sm_backend_conf_get_by_sr(ctxt, sr_uuid)
+            except exception.DBError, e:
+                _db_error(e)
+
+            if backend:
+                print 'Backend config found. Would you like to recreate this?'
+                print '(WARNING:Recreating will destroy all VDIs on backend!!)'
+                c = raw_input('Proceed? (y/n) ')
+                if c == 'y' or c == 'Y':
+                    try:
+                        db.sm_backend_conf_update(
+                            ctxt, backend['id'],
+                            dict(created=False,
+                                 flavor_id=flavors['id'],
+                                 sr_type=sr_type,
+                                 config_params=config_params))
+                    except exception.DBError, e:
+                        _db_error(e)
+                return
+
+            else:
+                print 'Backend config not found. Would you like to create it?'
+
+        print '(WARNING: Creating will destroy all data on backend!!!)'
+        c = raw_input('Proceed? (y/n) ')
+        if c == 'y' or c == 'Y':
+            try:
+                db.sm_backend_conf_create(ctxt,
+                                          dict(flavor_id=flavors['id'],
+                                               sr_uuid=sr_uuid,
+                                               sr_type=sr_type,
+                                               config_params=config_params))
+            except exception.DBError, e:
+                _db_error(e)
+
+    @args('backend_conf_id')
+    def backend_remove(self, backend_conf_id):
+        try:
+            db.sm_backend_conf_delete(context.get_admin_context(),
+                                      backend_conf_id)
+
+        except exception.DBError, e:
+            _db_error(e)
+
+
+class ConfigCommands(object):
+    """Class for exposing the flags defined by flag_file(s)."""
+
+    def __init__(self):
+        pass
+
+    def list(self):
+        for key, value in FLAGS.iteritems():
+            if value is not None:
+                print '%s = %s' % (key, value)
+
+
+class GetLogCommands(object):
+    """Get logging information."""
+
+    def errors(self):
+        """Get all of the errors from the log files."""
+        error_found = 0
+        if FLAGS.log_dir:
+            logs = [x for x in os.listdir(FLAGS.log_dir) if x.endswith('.log')]
+            for file in logs:
+                log_file = os.path.join(FLAGS.log_dir, file)
+                lines = [line.strip() for line in open(log_file, "r")]
+                lines.reverse()
+                print_name = 0
+                for index, line in enumerate(lines):
+                    if line.find(" ERROR ") > 0:
+                        error_found += 1
+                        if print_name == 0:
+                            print log_file + ":-"
+                            print_name = 1
+                        print "Line %d : %s" % (len(lines) - index, line)
+        if error_found == 0:
+            print "No errors in logfiles!"
+
+    @args('num_entries', nargs='?', type=int, default=10,
+          help='Number of entries to list (default: %(default)d)')
+    def syslog(self, num_entries=10):
+        """Get <num_entries> of the cinder syslog events."""
+        entries = int(num_entries)
+        count = 0
+        log_file = ''
+        if os.path.exists('/var/log/syslog'):
+            log_file = '/var/log/syslog'
+        elif os.path.exists('/var/log/messages'):
+            log_file = '/var/log/messages'
+        else:
+            print "Unable to find system log file!"
+            sys.exit(1)
+        lines = [line.strip() for line in open(log_file, "r")]
+        lines.reverse()
+        print "Last %s cinder syslog entries:-" % (entries)
+        for line in lines:
+            if line.find("cinder") > 0:
+                count += 1
+                print "%s" % (line)
+            if count == entries:
+                break
+
+        if count == 0:
+            print "No cinder entries in syslog!"
+
+
+class BackupCommands(object):
+    """Methods for managing backups."""
+
+    def list(self):
+        """List all backups (including ones in progress) and the host
+        on which the backup operation is running."""
+        ctxt = context.get_admin_context()
+        backups = db.backup_get_all(ctxt)
+
+        hdr = "%-32s\t%-32s\t%-32s\t%-24s\t%-24s\t%-12s\t%-12s\t%-12s\t%-12s"
+        print hdr % (_('ID'),
+                     _('User ID'),
+                     _('Project ID'),
+                     _('Host'),
+                     _('Name'),
+                     _('Container'),
+                     _('Status'),
+                     _('Size'),
+                     _('Object Count'))
+
+        res = "%-32s\t%-32s\t%-32s\t%-24s\t%-24s\t%-12s\t%-12s\t%-12d\t%-12d"
+        for backup in backups:
+            object_count = 0
+            if backup['object_count'] is not None:
+                object_count = backup['object_count']
+            print res % (backup['id'],
+                         backup['user_id'],
+                         backup['project_id'],
+                         backup['host'],
+                         backup['display_name'],
+                         backup['container'],
+                         backup['status'],
+                         backup['size'],
+                         object_count)
+
+
+CATEGORIES = {
+    'backup': BackupCommands,
+    'config': ConfigCommands,
+    'db': DbCommands,
+    'host': HostCommands,
+    'logs': GetLogCommands,
+    'shell': ShellCommands,
+    'sm': StorageManagerCommands,
+    'version': VersionCommands,
+    'volume': VolumeCommands,
+    'migrate': ImportCommands,
+}
+
+
+def methods_of(obj):
+    """Get all callable methods of an object that don't start with underscore
+    returns a list of tuples of the form (method_name, method)"""
+    result = []
+    for i in dir(obj):
+        if callable(getattr(obj, i)) and not i.startswith('_'):
+            result.append((i, getattr(obj, i)))
+    return result
+
+
+def add_command_parsers(subparsers):
+    for category in CATEGORIES:
+        command_object = CATEGORIES[category]()
+
+        parser = subparsers.add_parser(category)
+        parser.set_defaults(command_object=command_object)
+
+        category_subparsers = parser.add_subparsers(dest='action')
+
+        for (action, action_fn) in methods_of(command_object):
+            parser = category_subparsers.add_parser(action)
+
+            action_kwargs = []
+            for args, kwargs in getattr(action_fn, 'args', []):
+                parser.add_argument(*args, **kwargs)
+
+            parser.set_defaults(action_fn=action_fn)
+            parser.set_defaults(action_kwargs=action_kwargs)
+
+
+category_opt = cfg.SubCommandOpt('category',
+                                 title='Command categories',
+                                 handler=add_command_parsers)
+
+
+def get_arg_string(args):
+    arg = None
+    if args[0] == '-':
+    # (Note)zhiteng: args starts with FLAGS.oparser.prefix_chars
+    # is optional args. Notice that cfg module takes care of
+    # actual ArgParser so prefix_chars is always '-'.
+        if args[1] == '-':
+            # This is long optional arg
+            arg = args[2:]
+        else:
+            arg = args[3:]
+    else:
+        arg = args
+
+    return arg
+
+
+def fetch_func_args(func):
+    fn_args = []
+    for args, kwargs in getattr(func, 'args', []):
+        arg = get_arg_string(args[0])
+        fn_args.append(getattr(FLAGS.category, arg))
+
+    return fn_args
+
+
+def main():
+    """Parse options and call the appropriate class/method."""
+    FLAGS.register_cli_opt(category_opt)
+    script_name = sys.argv[0]
+    if len(sys.argv) < 2:
+        print(_("\nOpenStack Cinder version: %(version)s\n") %
+              {'version': version.version_string()})
+        print script_name + " category action [<args>]"
+        print _("Available categories:")
+        for category in CATEGORIES:
+            print "\t%s" % category
+        sys.exit(2)
+
+    try:
+        flags.parse_args(sys.argv)
+        logging.setup("cinder")
+    except cfg.ConfigFilesNotFoundError:
+        cfgfile = FLAGS.config_file[-1] if FLAGS.config_file else None
+        if cfgfile and not os.access(cfgfile, os.R_OK):
+            st = os.stat(cfgfile)
+            print _("Could not read %s. Re-running with sudo") % cfgfile
+            try:
+                os.execvp('sudo', ['sudo', '-u', '#%s' % st.st_uid] + sys.argv)
+            except Exception:
+                print _('sudo failed, continuing as if nothing happened')
+
+        print _('Please re-run cinder-manage as root.')
+        sys.exit(2)
+
+    fn = FLAGS.category.action_fn
+
+    fn_args = fetch_func_args(fn)
+    fn(*fn_args)
+
+if __name__ == '__main__':
+    main()

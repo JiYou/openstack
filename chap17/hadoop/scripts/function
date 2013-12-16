@@ -1,0 +1,32 @@
+function get_all_hosts()
+{
+    local tempfile=`mktemp`
+    for HOST in $1; do
+        echo $HOST >> $tempfile
+    done
+    local ALL_HOST=`cat $tempfile | sort | uniq`
+    rm $tempfile
+    echo $ALL_HOST
+}
+
+function read_xml()
+{
+    sed -n "/$1/, /<\/value>/p" $2 | sed '1d' | sed 's/<value>//g' | sed 's/<\/value>//g' | sed 's/ //g'
+}
+
+function read_conf()
+{
+    local VALUE=`grep $1 $2`
+    echo ${VALUE#*=}
+}
+
+function append_to_xml()
+{
+   sed -i "/<\/configuration>/d" $3
+   echo "    <property>" >> $3
+   echo "        <name>$1</name>" >> $3
+   echo "        <value>$2</value>" >> $3
+   echo "    </property>" >> $3
+   echo "</configuration>" >> $3
+}
+

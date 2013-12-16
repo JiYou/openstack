@@ -22,3 +22,5 @@ OpenStack
 
 - 运行./create_link.sh
 - 到chap0x章节下，将链接目录、链接文件，采用拷贝的方式复盖。
+
+有任何问题，请联系作者 jumail@qq.com

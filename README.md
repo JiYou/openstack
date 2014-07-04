@@ -1,7 +1,7 @@
 OpenStack
 =========
 
-《开源云OpenStack入门到精通》一书所附代码及资料。本书采用OpenStack Grizzly版本。
+《OpenStack开源云王者归来》一书所附代码及资料。本书采用OpenStack Grizzly版本。
 
 在使用资料包之前，应该选择一种方式：
 

@@ -5,6 +5,7 @@ set -o xtrace
 TOPDIR=$(cd $(dirname "$0") && pwd)
 cmd_old_dir=`pwd`
 cd $TOPDIR
+cat ./create_link.sh | grep -v cat|  grep cd | grep chap | awk '{print $2}' | sort -u | xargs -i mkdir -p {}
 
 function find_and_run() {
     old_dir=`pwd`

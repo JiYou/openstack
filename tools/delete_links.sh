@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+set -o xtrace
 
 TOPDIR=$(cd $(dirname "$0") && pwd)
 cd $TOPDIR/../
@@ -11,3 +12,5 @@ for n in `find . -name "*" | grep -v object | grep -v ".py"`; do
         rm -rf $n
     fi
 done
+
+set +o xtrace

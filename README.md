@@ -34,4 +34,4 @@ http://pan.baidu.com/s/1jGqoPhG
 
 # 常见问题
 
-由于能力有限，亦加时过境迁，编写的内容总会出现各种错误，请注意关注[常见问题](https://github.com/JiYou/openstack/blob/master/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98.md)。
+由于能力有限，亦加时过境迁，编写的内容总会出现各种错误，请注意关注[常见问题](https://github.com/JiYou/openstack/blob/master/qa.md)。

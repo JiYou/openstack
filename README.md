@@ -15,6 +15,10 @@ OpenStack
 创建链接文件的方法：
 * 下载完成之后，应该运行./create_link.sh
 
+# 下载方式
+除了使用git下载之外，还可以使用百度云上的公有链接下载此资源。
+http://pan.baidu.com/s/1jGqoPhG
+
 
 # 创建拷贝
 

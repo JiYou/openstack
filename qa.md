@@ -3,13 +3,37 @@
 
 # 如何下载Github资源？
 
-1. 使用git工具，但务必不要使用Windows上的git tools，Windows git工具会默认自动转码，
+有以下几种方法：
+
+>* 1. 使用git工具，但务必不要使用Windows上的git tools，Windows git工具会默认自动转码，
    以致拷贝至Linux之后，出现不能解释或者运行的情况。
-   
-2. https://github.com/jiyou/openstack 页面右边有Clone Zip按钮，可以点此按钮直接下载，
+
+>* 2. https://github.com/jiyou/openstack 页面右边有Clone Zip按钮，可以点此按钮直接下载，
    再拷贝至Linux机器。
-   
-3. Ubuntu节点上，运行`wget https://github.com/JiYou/openstack/archive/master.zip -o openstack.zip`。
-   
-  
+
+>* 3. Ubuntu节点上，运行`wget https://github.com/JiYou/openstack/archive/master.zip -o openstack.zip`。
+
+>* 4. 也可到百度云上下载http://pan.baidu.com/s/1jG3LX58，极力推荐。
+
+# 源的配置
+
+由于ubuntu-12.10官方法极不稳定。为了方便使用，当安装好ubuntu-12.10之后，请照如下步骤配置源：
+
+>* 1. 安装openssh-server: 在利用ubuntu-12.10-server-amd64.iso安装时，请务必勾选openssh-server，如下图：
+   ![勾选OpenSSH-server](./vm-install-openssh.png)
+
+>* 下载github资源。
+
+>* 解压下载的安装包。
+
+>* cd ./openstack #就是解压后的目录，如果名字不一样，请更改目录名。
+
+>* ./create_link.sh
+
+>* cd ./chap10/allinone && ./create_http_repo.sh
+
+>* 就可以正确地创建好本地可用的repo。
+
+>* 此外，书中编译源码安装MySQL和源码编译Libvirt的部分可以跳过（实际应用场景比较少）。
+
 

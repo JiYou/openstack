@@ -21,7 +21,7 @@
 
 由于ubuntu-12.10官方法极不稳定。为了方便使用，当安装好ubuntu-12.10之后，请照如下步骤配置源：
 
->* 1. 安装openssh-server: 在利用ubuntu-12.10-server-amd64.iso安装时，请务必勾选openssh-server，如下图：
+>* 安装openssh-server: 在利用ubuntu-12.10-server-amd64.iso安装时，请务必勾选openssh-server，如下图：
    ![勾选OpenSSH-server](./vm-install-openssh.png)
 
 >* 下载github资源。
@@ -39,19 +39,19 @@
 >* 此外，书中编译源码安装MySQL和源码编译Libvirt的部分可以跳过（实际应用场景比较少）。
 
 ## 方法2
->* 1. 下载只含deb包的离线包：http://pan.baidu.com/s/1kTA58Q7 。
+>* 下载只含deb包的离线包：http://pan.baidu.com/s/1kTA58Q7 。
 
->* 2. 解压之后形成如下目录
+>* 解压之后形成如下目录
       /opt/debs
               |- a....deb
               |- .....deb
               |- .....deb
               |_ .....deb
 
->* 3. 修改/etc/apt/sources.list，内容如下(只保留这一行)：
+>* 修改/etc/apt/sources.list，内容如下(只保留这一行)：
 deb file:///opt/debs/ debs/
 
->* 4. 运行`apt-get update`。
+>* 运行`apt-get update`。
 
->* 5. 如果运行成功，则证明建立成功。
+>* 如果运行成功，则证明建立成功。
 

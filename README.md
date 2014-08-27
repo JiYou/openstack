@@ -47,3 +47,6 @@ http://pan.baidu.com/s/1jGqoPhG
 ## 注意
 做OpenStack实验用的虚拟机，尽量不要做其他额外的实验，否则依赖包比较难以解决。
 
+
+## 所有资源
+本书用到的所有资源都可以从百度云中下载：http://pan.baidu.com/s/1gdzixz1 。

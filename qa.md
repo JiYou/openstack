@@ -22,6 +22,7 @@
 由于ubuntu-12.10官方法极不稳定。为了方便使用，当安装好ubuntu-12.10之后，请照如下步骤配置源：
 
 >* 安装openssh-server: 在利用ubuntu-12.10-server-amd64.iso安装时，请务必勾选openssh-server，如下图：
+
    ![勾选OpenSSH-server](./vm-install-openssh.png)
 
 >* 下载github资源。
@@ -42,6 +43,7 @@
 >* 下载只含deb包的离线包：http://pan.baidu.com/s/1kTA58Q7 。
 
 >* 解压之后形成如下目录::
+
    ![目录树结构](./vm-opt-tree.png)
 
 >* 修改/etc/apt/sources.list，内容如下(只保留这一行)::

@@ -46,6 +46,9 @@
 
    ![目录树结构](./vm-opt-tree.png)
 
+    当然，实际上你的目录结构和这个并不相符合，你会发现/opt/debs目录下有着更多的deb包。
+    如果发现是这样，那么请继续下一步。
+
 >* 修改/etc/apt/sources.list，内容如下(只保留这一行)::
 
     deb file:///opt/ debs/

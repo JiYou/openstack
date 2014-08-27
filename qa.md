@@ -42,13 +42,13 @@
 ## 方法2
 >* 下载只含deb包的离线包：http://pan.baidu.com/s/1kTA58Q7 。
 
->* 解压之后形成如下目录::
+>* 解压之后形成如下目录(如果你是放在/opt/目录下解压的，你只需要检查一下就可以了)::
 
    ![目录树结构](./vm-opt-tree.png)
 
 >* 修改/etc/apt/sources.list，内容如下(只保留这一行)::
 
-    deb file:///opt/debs/ debs/
+    deb file:///opt/ debs/
 
 >* 运行::
 

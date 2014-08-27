@@ -35,3 +35,15 @@ http://pan.baidu.com/s/1jGqoPhG
 # 常见问题
 
 由于能力有限，亦加时过境迁，编写的内容总会出现各种错误，请注意关注[常见问题](https://github.com/JiYou/openstack/blob/master/qa.md)。
+
+# 搭建虚拟机
+
+## step 1
+请参照[vm-install-guide.docx](./vm-install-guide.docx)
+
+## step 2
+请参考[常见问题](https://github.com/JiYou/openstack/blob/master/qa.md)建离线源方法。
+
+## 注意
+做OpenStack实验用的虚拟机，尽量不要做其他额外的实验，否则依赖包比较难以解决。
+

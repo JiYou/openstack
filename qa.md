@@ -13,9 +13,11 @@
 
 >* 3. Ubuntu节点上，运行`wget https://github.com/JiYou/openstack/archive/master.zip -o openstack.zip`。
 
->* 4. 也可到百度云上下载http://pan.baidu.com/s/1jG3LX58，极力推荐。
+>* 4. 也可到百度云上下载http://pan.baidu.com/s/1jG3LX58 ，极力推荐。
 
 # 源的配置
+
+## 方法1
 
 由于ubuntu-12.10官方法极不稳定。为了方便使用，当安装好ubuntu-12.10之后，请照如下步骤配置源：
 
@@ -36,4 +38,20 @@
 
 >* 此外，书中编译源码安装MySQL和源码编译Libvirt的部分可以跳过（实际应用场景比较少）。
 
+## 方法2
+>* 1. 下载只含deb包的离线包：http://pan.baidu.com/s/1kTA58Q7 。
+
+>* 2. 解压之后形成如下目录
+      /opt/debs
+              |- a....deb
+              |- .....deb
+              |- .....deb
+              |_ .....deb
+
+>* 3. 修改/etc/apt/sources.list，内容如下(只保留这一行)：
+deb file:///opt/debs/ debs/
+
+>* 4. 运行`apt-get update`。
+
+>* 5. 如果运行成功，则证明建立成功。
 

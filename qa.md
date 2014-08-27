@@ -42,12 +42,7 @@
 >* 下载只含deb包的离线包：http://pan.baidu.com/s/1kTA58Q7 。
 
 >* 解压之后形成如下目录::
-      /opt/debs
-              |- a....deb
-              |- .....deb
-              |- .....deb
-              |_ .....deb
-`
+   ![目录树结构](./vm-opt-tree.png)
 
 >* 修改/etc/apt/sources.list，内容如下(只保留这一行)::
 

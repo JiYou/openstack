@@ -41,9 +41,7 @@
 ## 方法2
 >* 下载只含deb包的离线包：http://pan.baidu.com/s/1kTA58Q7 。
 
->* 解压之后形成如下目录
-
-`
+>* 解压之后形成如下目录::
       /opt/debs
               |- a....deb
               |- .....deb
@@ -51,11 +49,13 @@
               |_ .....deb
 `
 
->* 修改/etc/apt/sources.list，内容如下(只保留这一行)：
+>* 修改/etc/apt/sources.list，内容如下(只保留这一行)::
 
-    `deb file:///opt/debs/ debs/`
+    deb file:///opt/debs/ debs/
 
->* 运行`apt-get update`。
+>* 运行::
+
+    apt-get update
 
 >* 如果运行成功，则证明建立成功。
 

@@ -1,0 +1,37 @@
+#!/bin/bash
+
+function _gen_ntp_keys() {
+    cnt=`cat /etc/ntp/keys | grep MD5 | wc -l`
+    if [[ $cnt -eq 0 ]]; then
+        olddir=`pwd`
+        cd /tmp/
+        rm -rf ntpkey*
+        ntp-keygen -M
+        cat `ls ntpkey* | head -1` | grep MD5  > /etc/ntp/keys
+        rm -rf ntpkey*
+        cd $olddir
+    fi
+}
+function _install_and_configure_ntp() {
+    service ntpd stop
+    local file=/etc/ntp.conf
+    local line=""
+
+    _gen_ntp_keys
+
+    echo "restrict default kod nomodify notrap nopeer noquery" > $file
+    echo "restrict 0.0.0.0 mask 0.0.0.0 kod nomodify notrap nopeer noquery notrust" >> $file
+    echo "restrict 127.0.0.1 mask 255.255.0.0 kod" >> $file
+    echo "restrict 127.0.0.1" >> $file
+    echo "server 127.127.1.0 fudge" >> $file
+    echo "127.127.1.0 stratum 8" >> $file
+    echo "keys /etc/ntp/keys" >> $file
+    echo "trustedkey 1 2 3 4 5 6 7 8 9 10" >> $file
+
+    service ntpd restart
+    chkconfig ntpd on
+}
+
+function setup_ntp() {
+    _install_and_configure_ntp
+}

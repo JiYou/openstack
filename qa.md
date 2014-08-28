@@ -61,3 +61,113 @@
 
 >* 查看命令输出，如果有如下输出，则说明成功：
 
+
+# 配置NTP服务
+
+主节点例如ceph01，ceph02, ceph03。
+其中ceph01提供时间服务，其他节点则向ceph01查询时间。
+
+
+## ceph01时间服务器配置如下：
+
+### Step 1 下载源码并编译
+
+        cd /opt/
+        wget http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/ntp-4.2.6p5.tar.gz
+        tar zxf ntp-4.2.6p5.tar.gz
+        cd ntp-4.2.6p5/
+        ./configure --prefix=/usr
+        make
+        make install
+
+### Step 2 配置
+
+        mkdir -p /etc/ntp
+        groupadd ntpd
+        mkdir -p /usr/local/ntp
+        useradd ntpd -g ntpd -d /usr/local/ntp -s /sbin/nologin
+        mkdir -p /var/log/ntp
+
+
+### Step 3 编写ntp.conf
+
+        file=/etc/ntp.conf
+        echo "restrict default kod nomodify notrap nopeer noquery" > $file
+        echo "restrict 0.0.0.0 mask 0.0.0.0 kod nomodify notrap nopeer noquery notrust" >> $file
+        echo "restrict 127.0.0.1 mask 255.255.0.0 kod" >> $file
+        echo "restrict 127.0.0.1" >> $file
+        echo "server 127.127.1.0 fudge" >> $file
+        echo "127.127.1.0 stratum 8" >> $file
+        echo "keys /etc/ntp/keys" >> $file
+        echo "trustedkey 1 2 3 4 5 6 7 8 9 10" >> $file
+
+### Step 4 生成ntp认证keys
+
+        olddir=`pwd`
+        cd /tmp/
+        rm -rf ntpkey*
+        ntp-keygen -M
+        cat `ls ntpkey* | head -1` | grep MD5  > /etc/ntp/keys
+        rm -rf ntpkey*
+        cd $olddir
+
+### Step 5 随系统启动
+
+        sed -i "/exit/d" /etc/rc.local
+        echo "/usr/bin/ntpd &" >> /etc/rc.local
+        echo "exit 0" >> /etc/rc.local
+
+
+### Step 6 启动ntpd
+
+        ntpd -k /etc/npt/keys
+
+
+## 子节点配置
+
+所有子节点都需要如下配置
+
+>* 注意ceph01是指向服务器节点，注意根据你的环境进行更改。
+
+### Step 1 下载源码并编译
+
+        cd /opt/
+        wget http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/ntp-4.2.6p5.tar.gz
+        tar zxf ntp-4.2.6p5.tar.gz
+        cd ntp-4.2.6p5/
+        ./configure --prefix=/usr
+        make
+        make install
+
+### Step 2 配置
+
+        mkdir -p /etc/ntp
+        groupadd ntpd
+        mkdir -p /usr/local/ntp
+        useradd ntpd -g ntpd -d /usr/local/ntp -s /sbin/nologin
+        mkdir -p /var/log/ntp
+
+
+### Step 3 编写ntp.conf
+
+        file=/etc/ntp.conf
+        echo "restrict default kod nomodify notrap nopeer noquery" > $file
+        echo "restrict 0.0.0.0 mask 0.0.0.0 kod nomodify notrap nopeer noquery notrust" >> $file
+        echo "restrict 127.0.0.1 mask 255.255.0.0 kod" >> $file
+        echo "restrict 127.0.0.1" >> $file
+        echo "server 127.127.1.0 fudge" >> $file
+        echo "127.127.1.0 stratum 8" >> $file
+        echo "keys /etc/ntp/keys" >> $file
+        echo "trustedkey 1 2 3 4 5 6 7 8 9 10" >> $file
+
+### Step 4 拷贝keys
+
+        scp -pr ceph01:/etc/ntp/keys /etc/ntp/
+
+### Step 5 编辑contab文件
+
+        echo "10 *    * * *   root    /usr/sbin/ntpdate -a 1 -k /etc/ntp/keys ceph01;hwclock -w" >> /etc/crontab
+        ntpdate -a 1 -k /etc/ntp/keys ceph01
+        crontab -u root /etc/crontab
+
+如果有看到`28 Aug 11:02:39 ntpdate[25429]: adjust time server 10.239.131.159 offset -0.000301 sec`输出，则说明成功。

@@ -171,3 +171,5 @@
         crontab -u root /etc/crontab
 
 如果有看到`28 Aug 11:02:39 ntpdate[25429]: adjust time server 10.239.131.159 offset -0.000301 sec`输出，则说明成功。
+
+>* 如果发现不成功，请注意是否关闭防火墙，`ufw disable`。如果不想关闭防火墙，请查询防火墙关于NTP服务的配置。

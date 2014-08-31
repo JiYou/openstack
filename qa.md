@@ -120,7 +120,7 @@
 
 ### Step 6 启动ntpd
 
-        ntpd -k /etc/npt/keys
+        ntpd -k /etc/ntp/keys
 
 
 ## 子节点配置

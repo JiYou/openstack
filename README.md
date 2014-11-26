@@ -10,20 +10,20 @@ OpenStack
 
 有不少读者反应在使用系统时，可能会遇到源的问题，在安装好Ubuntu-12.10之后，可以使用如下网络源（请保证你的系统可以连接至网络）：
 
-deb http://old-releases.ubuntu.com/ubuntu/ quantal main restricted
-deb-src http://old-releases.ubuntu.com/ubuntu/ quantal main restricted
-deb http://old-releases.ubuntu.com/ubuntu/ quantal-updates main restricted
-deb-src http://old-releases.ubuntu.com/ubuntu/ quantal-updates main restricted
-deb http://old-releases.ubuntu.com/ubuntu/ quantal universe
-deb-src http://old-releases.ubuntu.com/ubuntu/ quantal universe
-deb http://old-releases.ubuntu.com/ubuntu/ quantal-updates universe
-deb-src http://old-releases.ubuntu.com/ubuntu/ quantal-updates universe
-deb http://old-releases.ubuntu.com/ubuntu/ quantal multiverse
-deb-src http://old-releases.ubuntu.com/ubuntu/ quantal multiverse
-deb http://old-releases.ubuntu.com/ubuntu/ quantal-updates multiverse
-deb-src http://old-releases.ubuntu.com/ubuntu/ quantal-updates multiverse
-deb http://old-releases.ubuntu.com/ubuntu/ quantal-backports main restricted universe multiverse
-deb-src http://old-releases.ubuntu.com/ubuntu/ quantal-backports main restricted universe multiverse
+    deb http://old-releases.ubuntu.com/ubuntu/ quantal main restricted
+    deb-src http://old-releases.ubuntu.com/ubuntu/ quantal main restricted
+    deb http://old-releases.ubuntu.com/ubuntu/ quantal-updates main restricted
+    deb-src http://old-releases.ubuntu.com/ubuntu/ quantal-updates main restricted
+    deb http://old-releases.ubuntu.com/ubuntu/ quantal universe
+    deb-src http://old-releases.ubuntu.com/ubuntu/ quantal universe
+    deb http://old-releases.ubuntu.com/ubuntu/ quantal-updates universe
+    deb-src http://old-releases.ubuntu.com/ubuntu/ quantal-updates universe
+    deb http://old-releases.ubuntu.com/ubuntu/ quantal multiverse
+    deb-src http://old-releases.ubuntu.com/ubuntu/ quantal multiverse
+    deb http://old-releases.ubuntu.com/ubuntu/ quantal-updates multiverse
+    deb-src http://old-releases.ubuntu.com/ubuntu/ quantal-updates multiverse
+    deb http://old-releases.ubuntu.com/ubuntu/ quantal-backports main restricted universe multiverse
+    deb-src http://old-releases.ubuntu.com/ubuntu/ quantal-backports main restricted universe multiverse
 
 将/etc/apt/sources.list文件原有内容清空，再复制此内容至/etc/apt/sources.list文件。然后再运行：
 

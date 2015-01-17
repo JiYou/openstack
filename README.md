@@ -1,6 +1,13 @@
 OpenStack
 =========
 
+# 实验
+书中内容主要是实验的讲解，如果需要实验，只需要两步：
+－ http://www.tudou.com/programs/view/PDNURkFR96U/ 必须照视频进行安装Ubuntu-12.10系统。
+－ 第十章 allinone安装。
+
+如果能顺利完成，那么，以下内容可以忽略。
+
 《OpenStack开源云王者归来》一书所附代码及资料。本书采用OpenStack Grizzly版本。
 
 # 操作系统

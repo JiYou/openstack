@@ -5,7 +5,7 @@ OpenStack
 书中内容主要是实验的讲解，如果需要实验，只需要两步：
 
     － http://www.tudou.com/programs/view/PDNURkFR96U/ 必须照视频进行安装Ubuntu-12.10系统。
-    － 第十章 allinone安装。
+    － 第十章 单机版安装。记住：直接看10.1.4 《安装OpenStack各组件》开始动手。
 
 如果能顺利完成，那么，以下内容可以忽略。
 

@@ -1,6 +1,9 @@
 OpenStack
 =========
 
+# Ubuntu 14.04
+如查想使用Ubuntu 14.04，请移步至：https://github.com/JiYou/openstack-ubuntu-14-04
+
 # 实验
 书中内容主要是实验的讲解，如果需要实验，只需要两步：
 

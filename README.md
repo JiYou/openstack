@@ -13,7 +13,7 @@ http://www.tudou.com/listplay/XVZuh9OC1eg.html/
 
 # 联系方式
 有任何问题，请联系作者 jumail@qq.com
-为了更加方便交流，关收OpenStack书籍的任何问题，可加入QQ群345596547即OpenStack品书会。
+为了更加方便交流，关收OpenStack书籍的任何问题，可加入QQ群498483027即OpenStack品书会。
 
 # 常见问题
 

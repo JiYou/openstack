@@ -1,6 +1,10 @@
 OpenStack
 =========
 
+# Ubuntu 12.10
+
+由于Ubuntu 12.10官方已经停止更新。请务使用Ubuntu 14.04。https://github.com/JiYou/openstack-ubuntu-14-04
+
 # Ubuntu 14.04
 使用Ubuntu 14.04，请移步至：https://github.com/JiYou/openstack-ubuntu-14-04
 尽量使用Ubuntu-14.04。

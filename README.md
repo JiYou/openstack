@@ -25,3 +25,7 @@ http://www.tudou.com/listplay/XVZuh9OC1eg.html/
 
 ## 所有资源
 本书用到的所有资源都可以从百度云中下载：http://pan.baidu.com/s/1gdzixz1 。
+
+# OpenStack较新版本Mitaka的安装视频
+
+http://www.tudou.com/listplay/_jzcCgn_jfs.html

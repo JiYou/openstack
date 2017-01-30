@@ -33,3 +33,7 @@ http://www.tudou.com/listplay/_jzcCgn_jfs.html
 ## 高清原视频
 
 百度云中下载：http://pan.baidu.com/s/1gdzixz1 (OpenStack开源云王者归来-Mitaka安装)
+
+## OpenStack Mitaka OpenVSwitch 自运化安装
+
+百度云中下载：http://pan.baidu.com/s/1gdzixz1 (OpenStack开源云王者归来-Mitaka自动化安装)

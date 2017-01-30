@@ -29,3 +29,7 @@ http://www.tudou.com/listplay/XVZuh9OC1eg.html/
 # OpenStack较新版本Mitaka的安装视频
 
 http://www.tudou.com/listplay/_jzcCgn_jfs.html
+
+## 高清原视频
+
+百度云中下载：http://pan.baidu.com/s/1gdzixz1 (OpenStack开源云王者归来-Mitaka安装)

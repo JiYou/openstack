@@ -24,15 +24,15 @@ http://www.tudou.com/listplay/XVZuh9OC1eg.html/
 由于能力有限，亦加时过境迁，编写的内容总会出现各种错误，请注意关注[常见问题](https://github.com/JiYou/openstack/blob/master/qa.md)。
 
 ## 所有资源
-本书用到的所有资源都可以从百度云中下载：http://pan.baidu.com/s/1gdzixz1 。
+本书用到的所有资源都可以从百度云中下载：https://pan.baidu.com/s/1i5FkZ6P
 
 # OpenStack较新版本Mitaka的安装视频
 
 土豆视频 http://www.tudou.com/listplay/_jzcCgn_jfs.html
 
 ## 高清原视频 OpenStack开源云王者归来-Mitaka安装 手动一步一步安装
-百度云中下载：http://pan.baidu.com/s/1gdzixz1 (OpenStack开源云王者归来-Mitaka安装)
+百度云中下载：https://pan.baidu.com/s/1i5FkZ6P (OpenStack开源云王者归来-Mitaka安装)
 
 ## 高清视频 OpenStack Mitaka OpenVSwitch 自运化安装
 
-百度云中下载：http://pan.baidu.com/s/1gdzixz1 (OpenStack开源云王者归来-Mitaka自动化安装)
+百度云中下载：https://pan.baidu.com/s/1i5FkZ6P (OpenStack开源云王者归来-Mitaka自动化安装)

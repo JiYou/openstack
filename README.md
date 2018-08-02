@@ -24,20 +24,22 @@ http://www.tudou.com/listplay/XVZuh9OC1eg.html/
 由于能力有限，亦加时过境迁，编写的内容总会出现各种错误，请注意关注[常见问题](https://github.com/JiYou/openstack/blob/master/qa.md)。
 
 ## 所有资源
-本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1ge7a61X 密码: u5h4
+
+本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1gg4SVxzZW4Ltwk7TFXDW0A 密码: kgxs
 
 # OpenStack较新版本Mitaka的安装视频
 
 土豆视频 http://www.tudou.com/listplay/_jzcCgn_jfs.html
 
 ## 高清原视频 OpenStack开源云王者归来-Mitaka安装 手动一步一步安装
-百度云中下载：链接: https://pan.baidu.com/s/1ge7a61X 密码: u5h4 (OpenStack开源云王者归来-Mitaka安装)
+
+本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1gg4SVxzZW4Ltwk7TFXDW0A 密码: kgxs (OpenStack开源云王者归来-Mitaka安装)
 
 ## 高清视频 OpenStack Mitaka OpenVSwitch 自运化安装
 
-百度云中下载：链接: https://pan.baidu.com/s/1ge7a61X 密码: u5h4 (OpenStack开源云王者归来-Mitaka自动化安装)
+
+本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1gg4SVxzZW4Ltwk7TFXDW0A 密码: kgxs (OpenStack开源云王者归来-Mitaka自动化安装)
 
 # Notice
 
-百度云盘帐号长时未用，导致失窃。重新申诉找回。之前的分享已然失效。
-新的链接：链接: https://pan.baidu.com/s/1ge7a61X 密码: u5h4
+本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1gg4SVxzZW4Ltwk7TFXDW0A 密码: kgxs

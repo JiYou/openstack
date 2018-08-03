@@ -12,9 +12,6 @@ OpenStack
 
 # 实验
 
-配套视频：
-http://www.tudou.com/listplay/XVZuh9OC1eg.html/
-
 # 联系方式
 有任何问题，请联系作者 jumail@qq.com
 为了更加方便交流，关收OpenStack书籍的任何问题，可加入QQ群498483027即OpenStack品书会。
@@ -27,9 +24,6 @@ http://www.tudou.com/listplay/XVZuh9OC1eg.html/
 
 本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1gg4SVxzZW4Ltwk7TFXDW0A 密码: kgxs
 
-# OpenStack较新版本Mitaka的安装视频
-
-土豆视频 http://www.tudou.com/listplay/_jzcCgn_jfs.html
 
 ## 高清原视频 OpenStack开源云王者归来-Mitaka安装 手动一步一步安装
 

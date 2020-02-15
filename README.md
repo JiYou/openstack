@@ -22,18 +22,17 @@ OpenStack
 
 ## 所有资源
 
-本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1gg4SVxzZW4Ltwk7TFXDW0A 密码: kgxs
-
+本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/13SYHstgLtlG8blo5u1V3OQ 提取码: k3yp 复制这段内容后打开百度网盘手机App，操作更方便哦
 
 ## 高清原视频 OpenStack开源云王者归来-Mitaka安装 手动一步一步安装
 
-本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1gg4SVxzZW4Ltwk7TFXDW0A 密码: kgxs (OpenStack开源云王者归来-Mitaka安装)
+本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/13SYHstgLtlG8blo5u1V3OQ 提取码: k3yp 复制这段内容后打开百度网盘手机App，操作更方便哦 (OpenStack开源云王者归来-Mitaka安装)
 
 ## 高清视频 OpenStack Mitaka OpenVSwitch 自运化安装
 
 
-本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1gg4SVxzZW4Ltwk7TFXDW0A 密码: kgxs (OpenStack开源云王者归来-Mitaka自动化安装)
+本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/13SYHstgLtlG8blo5u1V3OQ 提取码: k3yp 复制这段内容后打开百度网盘手机App，操作更方便哦 (OpenStack开源云王者归来-Mitaka自动化安装)
 
 # Notice
 
-本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/1gg4SVxzZW4Ltwk7TFXDW0A 密码: kgxs
+本书用到的所有资源都可以从百度云中下载：链接: https://pan.baidu.com/s/13SYHstgLtlG8blo5u1V3OQ 提取码: k3yp 复制这段内容后打开百度网盘手机App，操作更方便哦

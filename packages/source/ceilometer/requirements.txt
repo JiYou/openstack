@@ -9,7 +9,7 @@ sqlalchemy-migrate>=0.7.2
 pymongo>=2.2
 eventlet
 anyjson>=0.3.3
-Flask==0.9
+Flask==1.0
 pecan>=0.2.0
 stevedore>=0.9
 msgpack-python
